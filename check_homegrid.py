@@ -1,7 +1,7 @@
 from stable_baselines3.common.env_checker import check_env
 from matplotlib import pyplot as plt
 
-import gym
+import gymnasium as gym
 
 import homegrid
 
@@ -12,6 +12,32 @@ import homegrid
 
 env = gym.make("homegrid-cat")
 obs, info = env.reset()
+
+for layer in range(obs.shape[-1]):
+    print(obs[:, :, layer])
+
+print(obs.shape)
+print(env.agent_pos)
+
+av = env.agent_view_binary_grid()
+
+for layer in range(obs.shape[-1]):
+    print(av[:, :, layer])
+
+rend = env.render()
+# input('\n.render() output \n\n')
+plt.imshow(rend)
+plt.show()
+
+exit()
+
+
+# check_env(env)
+# print("CHECK DONE")
+
+
+input('GENERAL CHEKS')
+
 
 print(obs)
 print(obs.shape)

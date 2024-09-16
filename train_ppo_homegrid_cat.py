@@ -5,18 +5,26 @@ from stable_baselines3.common.env_util import make_vec_env
 
 
 # Parallel environments
-vec_env = make_vec_env("homegrid-cat", n_envs=4)
+# env = make_vec_env("homegrid-cat", n_envs=4)
 
-model = PPO("MlpPolicy", vec_env, verbose=1)
-model.learn(total_timesteps=1000)
+env = gym.make("homegrid-cat")
+
+print('Defining model')
+model = PPO("MlpPolicy", env, verbose=2)
+print('Model defined\n')
+
+print('\nStarting learning...')
+model.learn(total_timesteps=25000, log_interval=1000, progress_bar=True)
+
+
 model.save("homegrid_cat_1")
 
 del model # remove to demonstrate saving and loading
 
 model = PPO.load("homegrid_cat_1")
 
-obs = vec_env.reset()
+obs, info = env.reset()
 while True:
     action, _states = model.predict(obs)
-    obs, rewards, dones, info = vec_env.step(action)
-    vec_env.render("human")
+    obs, rewards, dones, info = env.step(action)
+    env.render("human")
