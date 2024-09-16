@@ -42,7 +42,7 @@ print(env.observation_space)
 
 obs, info = env.reset()
 
-for i in range(4):
+for i in range(3):
     print(obs[:, :, i])
 
 

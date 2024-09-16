@@ -51,4 +51,4 @@ for i in range(3):
 
 
 model = PPO("CnnPolicy", env, policy_kwargs=policy_kwargs, verbose=1)
-model.learn(1e5, progress_bar=True)
+model.learn(1e4, progress_bar=True)

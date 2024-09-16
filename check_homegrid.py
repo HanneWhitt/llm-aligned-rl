@@ -29,8 +29,6 @@ rend = env.render()
 plt.imshow(rend)
 plt.show()
 
-exit()
-
 
 # check_env(env)
 # print("CHECK DONE")
@@ -39,8 +37,8 @@ exit()
 input('GENERAL CHEKS')
 
 
-print(obs)
-print(obs.shape)
+for layer in range(obs.shape[-1]):
+    print(obs[:, :, layer])
 input("\n.reset() obs output\n\n")
 print(info)
 input("\n.reset() info output\n\n")
@@ -51,7 +49,8 @@ print('STEP')
 obs, reward, terminated, truncated, info = env.step(0)
 print('step over')
 
-print(obs)
+for layer in range(obs.shape[-1]):
+    print(obs[:, :, layer])
 print(obs.shape)
 input("\n.step() obs output\n\n")
 print(reward)
