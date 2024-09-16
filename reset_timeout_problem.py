@@ -6,8 +6,7 @@ import time
 env = gym.make("homegrid-cat")
 
 
-for i in range(100):
-    print('Call ', i)
+for i in range(100000):
     s = time.time()
     obs, info = env.reset()
-    print(time.time() - s, 'seconds')
+    print('Call ', i, time.time() - s, 'seconds')
