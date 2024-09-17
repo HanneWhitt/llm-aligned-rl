@@ -13,8 +13,13 @@ import homegrid
 env = gym.make("homegrid-cat")
 obs, info = env.reset()
 
+print(obs.shape)
+print(env.observation_space)
+
+
 for layer in range(obs.shape[-1]):
     print(obs[:, :, layer])
+exit()
 
 print(obs.shape)
 print(env.agent_pos)
