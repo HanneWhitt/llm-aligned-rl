@@ -51,13 +51,13 @@ for n in range(1, 11):
     sts = f"{n}e5_steps" if n < 10 else '1e6_steps'
     print(sts)
     model.learn(1e5, progress_bar=True, tb_log_name='continuous_log', reset_num_timesteps=False)
-    model.save(f"homegrid-cat-1-{sts}")
+    model.save(f"homegrid-cat-1-{sts}.zip")
 
 for n in range(2, 10000):
     print(sts)
     sts = f"{n}e6_steps" if n < 10 else f'{n/10}e7_steps'
     model.learn(1e6, progress_bar=True, tb_log_name='continuous_log', reset_num_timesteps=False)
-    model.save(f"homegrid-cat-1-{sts}")
+    model.save(f"homegrid-cat-1-{sts}.zip")
 
 
 del model # remove to demonstrate saving and loading
