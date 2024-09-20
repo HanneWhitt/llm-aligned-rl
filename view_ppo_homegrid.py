@@ -8,7 +8,7 @@ from minigrid.wrappers import ImgObsWrapper
 from stable_baselines3 import PPO
 import time
 
-model = PPO.load("../training_runs/first_run/models/homegrid-cat-1-1.2e7_steps")
+model = PPO.load("../training_runs/first_run/models/homegrid-cat-1-1.3e7_steps")
 
 env = make_vec_env("homegrid-cat", n_envs=4)
 
