@@ -7,7 +7,37 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
- 
+from matplotlib import pyplot as plt 
+from PIL import Image
+from torch.utils.data import Dataset, DataLoader
+import numpy as np
+
+
+
+# Make dataloader
+
+class CustomDataset(Dataset):
+
+    def __init__(self):
+        self.env = gym.make("homegrid-cat")
+        self.env.reset()
+        self.env_terminated = False
+    
+    def __len__(self):
+        return np.inf
+
+    def __getitem__(self, idx):
+
+        if self.env_terminated:
+            obs, info = self.env.reset()
+            self.env_terminated = False
+        else:
+            a = random.choice([0, 1, 2, 3])
+            obs, reward, terminated, truncated, info = self.env.step(a)
+            if terminated or truncated:
+                self.env_terminated = True
+
+        return self.env.render()
 
 
 # Define the autoencoder architecture
@@ -94,15 +124,19 @@ model.to(device)
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
  
+
+def save_top_example(img, savefile):
+    saveexample  = (img[0].permute(1, 2, 0).detach().cpu().numpy()*255).astype('uint8')
+    imsave = Image.fromarray(saveexample)
+    imsave.save(savefile)
+    print(f"IMAGE SAVED TO {savefile}")
+
+
 # Train the autoencoder
 num_epochs = 50
 for epoch in range(num_epochs):
     for data in train_loader:
         img, _ = data
-
-        # print(img.shape)
-        # input()
-
         img = img.to(device)
         optimizer.zero_grad()
         output = model(img)
@@ -111,6 +145,9 @@ for epoch in range(num_epochs):
         optimizer.step()
     if epoch % 5== 0:
         print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))
+        save_top_example(img, f'../autoencoder_samples/flowers/epoch_{epoch}_original.png')
+        save_top_example(output, f'../autoencoder_samples/flowers/epoch_{epoch}_reconstructed.png')
+
  
 # Save the model
 torch.save(model.state_dict(), 'conv_autoencoder.pth')

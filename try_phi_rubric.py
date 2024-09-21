@@ -5,14 +5,14 @@ from transformers import AutoProcessor
 import sys
 import time
 
-model_id = "microsoft/Phi-3.5-vision-instruct-4bit"
+model_id = "mlx-community/Phi-3.5-vision-instruct-4bit"
 
 model = AutoModelForCausalLM.from_pretrained(
     model_id,
     device_map="cuda",
     trust_remote_code=True,
     torch_dtype="auto",
-    _attn_implementation="eager"
+    _attn_implementation="flash_attention_2"
 )
 
 processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
