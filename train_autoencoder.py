@@ -9,35 +9,8 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from matplotlib import pyplot as plt 
 from PIL import Image
-from torch.utils.data import Dataset, DataLoader
 import numpy as np
-
-
-
-# Make dataloader
-
-class CustomDataset(Dataset):
-
-    def __init__(self):
-        self.env = gym.make("homegrid-cat")
-        self.env.reset()
-        self.env_terminated = False
-    
-    def __len__(self):
-        return np.inf
-
-    def __getitem__(self, idx):
-
-        if self.env_terminated:
-            obs, info = self.env.reset()
-            self.env_terminated = False
-        else:
-            a = random.choice([0, 1, 2, 3])
-            obs, reward, terminated, truncated, info = self.env.step(a)
-            if terminated or truncated:
-                self.env_terminated = True
-
-        return self.env.render()
+from autoencoder_dataloader import RandomDataset
 
 
 # Define the autoencoder architecture
@@ -89,31 +62,22 @@ class Autoencoder(nn.Module):
 # Initialize the autoencoder
 model = Autoencoder()
  
-# Define transform
-transform = transforms.Compose([
-    transforms.Resize((64, 64)),
-    transforms.ToTensor(),
-])
+# # Define transform
+# transform = transforms.Compose([
+#     transforms.Resize((64, 64)),
+#     transforms.ToTensor(),
+# ])
  
 # Load dataset
-train_dataset = datasets.Flowers102(root='flowers', 
-                                    split='train', 
-                                    transform=transform, 
-                                    download=True)
-test_dataset = datasets.Flowers102(root='flowers', 
-                                   split='test', 
-                                   transform=transform)
-
-
-
-
+train_dataset = RandomDataset()
+test_dataset = RandomDataset()
 
 # Define the dataloader
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset, 
-                                           batch_size=128, 
+                                           batch_size=16, 
                                            shuffle=True)
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset, 
-                                          batch_size=128)
+                                          batch_size=16)
  
 # Move the model to GPU
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -136,7 +100,14 @@ def save_top_example(img, savefile):
 num_epochs = 50
 for epoch in range(num_epochs):
     for data in train_loader:
-        img, _ = data
+        img = data
+
+        # print(img[0])
+        # print(type(img))
+        # print(img.shape)
+        # print(img.dtype)
+        # input()
+
         img = img.to(device)
         optimizer.zero_grad()
         output = model(img)
@@ -145,12 +116,12 @@ for epoch in range(num_epochs):
         optimizer.step()
     if epoch % 5== 0:
         print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))
-        save_top_example(img, f'../autoencoder_samples/flowers/epoch_{epoch}_original.png')
-        save_top_example(output, f'../autoencoder_samples/flowers/epoch_{epoch}_reconstructed.png')
+        save_top_example(img, f'../autoencoder_samples/first_attempt/epoch_{epoch}_original.png')
+        save_top_example(output, f'../autoencoder_samples/first_attempt/epoch_{epoch}_reconstructed.png')
 
  
 # Save the model
-torch.save(model.state_dict(), 'conv_autoencoder.pth')
+torch.save(model.state_dict(), '../autoencoder_samples/first_attempt/conv_autoencoder.pth')
 
 
 
