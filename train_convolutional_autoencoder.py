@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 from PIL import Image
 import numpy as np
 from autoencoder_dataloader import RandomDataset
+from torch.optim.lr_scheduler import MultiStepLR
 
 
 # Define the autoencoder architecture
@@ -22,16 +23,22 @@ class Encoder(nn.Module):
     self.net = nn.Sequential(
         nn.Conv2d(in_channels, out_channels, 3, padding=1), # (448, 384)
         act_fn,
+        nn.BatchNorm2d(out_channels),
         nn.Conv2d(out_channels, out_channels, 3, padding=1, stride=2), # (224, 192)
         act_fn,
+        nn.BatchNorm2d(out_channels),
         nn.Conv2d(out_channels, 2*out_channels, 3, padding=1, stride=2), # (112, 96)
         act_fn,
+        nn.BatchNorm2d(2*out_channels),
         nn.Conv2d(2*out_channels, 2*out_channels, 3, padding=1, stride=2), # (56, 48)
         act_fn,
+        nn.BatchNorm2d(2*out_channels),
         nn.Conv2d(2*out_channels, 4*out_channels, 3, padding=1, stride=2), # (28, 24)
         act_fn,
+        nn.BatchNorm2d(4*out_channels),
         nn.Conv2d(4*out_channels, 4*out_channels, 3, padding=1, stride=2), # (14, 12)
         act_fn,
+        nn.BatchNorm2d(4*out_channels),
         nn.Flatten(), # (112 * 96)
         nn.Linear(4*out_channels*14*12, latent_dim),
         act_fn
@@ -52,25 +59,31 @@ class Decoder(nn.Module):
 
     self.linear = nn.Sequential(
         nn.Linear(latent_dim, 4*out_channels*14*12),
-        act_fn
+        act_fn,
+        nn.BatchNorm1d(4*out_channels*14*12)
     )
 
     self.conv = nn.Sequential(
         nn.ConvTranspose2d(4*out_channels, 4*out_channels, 3, padding=1, 
                            stride=2, output_padding=1), # (14, 12)
         act_fn,
+        nn.BatchNorm2d(4*out_channels),
         nn.ConvTranspose2d(4*out_channels, 2*out_channels, 3, padding=1, 
                            stride=2, output_padding=1), # (16, 16)
         act_fn,
+        nn.BatchNorm2d(2*out_channels),
         nn.ConvTranspose2d(2*out_channels, 2*out_channels, 3, padding=1, 
                            stride=2, output_padding=1),
         act_fn,
+        nn.BatchNorm2d(2*out_channels),
         nn.ConvTranspose2d(2*out_channels, out_channels, 3, padding=1, 
                            stride=2, output_padding=1), # (32, 32)
         act_fn,
+        nn.BatchNorm2d(out_channels),
         nn.ConvTranspose2d(out_channels, out_channels, 3, padding=1, 
                            stride=2, output_padding=1),
         act_fn,
+        nn.BatchNorm2d(out_channels),
         nn.ConvTranspose2d(out_channels, in_channels, 3, padding=1),
         nn.Sigmoid()
     )
@@ -126,7 +139,8 @@ model = Autoencoder(Encoder(), Decoder(), device)
 # Define the loss function and optimizer
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
- 
+scheduler = MultiStepLR(optimizer, milestones=[100, 200, 300, 400, 500, 600], gamma=0.5)
+
 
 def save_top_example(img, savefile):
     saveexample  = (img[0].permute(1, 2, 0).detach().cpu().numpy()*255).astype('uint8')
@@ -135,8 +149,11 @@ def save_top_example(img, savefile):
     print(f"IMAGE SAVED TO {savefile}")
 
 
+min_loss = 1000
+lses = []
+
 # Train the autoencoder
-num_epochs = 50
+num_epochs = 1000000
 for epoch in range(num_epochs):
     for data in train_loader:
         img = data
@@ -153,14 +170,25 @@ for epoch in range(num_epochs):
         loss = criterion(output, img)
         loss.backward()
         optimizer.step()
+    
+    ls = loss.item()
+    lses.append(ls)
+    np.savetxt("../autoencoder_samples/first_attempt/loss_record.csv", lses, delimiter=",")
+    print('Epoch [{}/{}], Loss: {:.6f}'.format(epoch+1, num_epochs, ls))
+    
+    if ls < min_loss:
+        print('NEW MIN LOSS')
+        min_loss = ls
+        torch.save(model.state_dict(), '../autoencoder_samples/first_attempt/conv_autoencoder.pth')
+
     if epoch % 5== 0:
-        print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))
         save_top_example(img, f'../autoencoder_samples/first_attempt/epoch_{epoch}_original.png')
         save_top_example(output, f'../autoencoder_samples/first_attempt/epoch_{epoch}_reconstructed.png')
+        
+    scheduler.step()
 
- 
-# Save the model
-torch.save(model.state_dict(), '../autoencoder_samples/first_attempt/conv_autoencoder.pth')
+# # Save the model
+# torch.save(model.state_dict(), '../autoencoder_samples/first_attempt/conv_autoencoder.pth')
 
 
 
