@@ -21,22 +21,22 @@ class Encoder(nn.Module):
     super().__init__()
 
     self.net = nn.Sequential(
-        nn.Conv2d(in_channels, out_channels, 3, padding=1), # (448, 384)
+        nn.Conv2d(in_channels, out_channels, 5, padding=2), # (448, 384)
         act_fn,
         nn.BatchNorm2d(out_channels),
-        nn.Conv2d(out_channels, out_channels, 3, padding=1, stride=2), # (224, 192)
+        nn.Conv2d(out_channels, out_channels, 5, padding=2, stride=2), # (224, 192)
         act_fn,
         nn.BatchNorm2d(out_channels),
-        nn.Conv2d(out_channels, 2*out_channels, 3, padding=1, stride=2), # (112, 96)
+        nn.Conv2d(out_channels, 2*out_channels, 5, padding=2, stride=2), # (112, 96)
         act_fn,
         nn.BatchNorm2d(2*out_channels),
-        nn.Conv2d(2*out_channels, 2*out_channels, 3, padding=1, stride=2), # (56, 48)
+        nn.Conv2d(2*out_channels, 2*out_channels, 5, padding=2, stride=2), # (56, 48)
         act_fn,
         nn.BatchNorm2d(2*out_channels),
-        nn.Conv2d(2*out_channels, 4*out_channels, 3, padding=1, stride=2), # (28, 24)
+        nn.Conv2d(2*out_channels, 4*out_channels, 5, padding=2, stride=2), # (28, 24)
         act_fn,
         nn.BatchNorm2d(4*out_channels),
-        nn.Conv2d(4*out_channels, 4*out_channels, 3, padding=1, stride=2), # (14, 12)
+        nn.Conv2d(4*out_channels, 4*out_channels, 5, padding=2, stride=2), # (14, 12)
         act_fn,
         nn.BatchNorm2d(4*out_channels),
         nn.Flatten(), # (112 * 96)
@@ -64,27 +64,27 @@ class Decoder(nn.Module):
     )
 
     self.conv = nn.Sequential(
-        nn.ConvTranspose2d(4*out_channels, 4*out_channels, 3, padding=1, 
+        nn.ConvTranspose2d(4*out_channels, 4*out_channels, 5, padding=2, 
                            stride=2, output_padding=1), # (14, 12)
         act_fn,
         nn.BatchNorm2d(4*out_channels),
-        nn.ConvTranspose2d(4*out_channels, 2*out_channels, 3, padding=1, 
+        nn.ConvTranspose2d(4*out_channels, 2*out_channels, 5, padding=2, 
                            stride=2, output_padding=1), # (16, 16)
         act_fn,
         nn.BatchNorm2d(2*out_channels),
-        nn.ConvTranspose2d(2*out_channels, 2*out_channels, 3, padding=1, 
+        nn.ConvTranspose2d(2*out_channels, 2*out_channels, 5, padding=2, 
                            stride=2, output_padding=1),
         act_fn,
         nn.BatchNorm2d(2*out_channels),
-        nn.ConvTranspose2d(2*out_channels, out_channels, 3, padding=1, 
+        nn.ConvTranspose2d(2*out_channels, out_channels, 5, padding=2, 
                            stride=2, output_padding=1), # (32, 32)
         act_fn,
         nn.BatchNorm2d(out_channels),
-        nn.ConvTranspose2d(out_channels, out_channels, 3, padding=1, 
+        nn.ConvTranspose2d(out_channels, out_channels, 5, padding=2, 
                            stride=2, output_padding=1),
         act_fn,
         nn.BatchNorm2d(out_channels),
-        nn.ConvTranspose2d(out_channels, in_channels, 3, padding=1),
+        nn.ConvTranspose2d(out_channels, in_channels, 5, padding=2),
         nn.Sigmoid()
     )
 
@@ -134,12 +134,19 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 # Initialize the autoencoder
-model = Autoencoder(Encoder(), Decoder(), device)
-  
+model = Autoencoder(Encoder(out_channels=16), Decoder(out_channels=16), device)
+
+
+LOAD_MODEL_FROM = None
+if LOAD_MODEL_FROM:
+    model.load_state_dict(torch.load(LOAD_MODEL_FROM, weights_only=True))
+    print('LOADED MODEL FROM ', LOAD_MODEL_FROM, ', resuming training')
+
+
 # Define the loss function and optimizer
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-scheduler = MultiStepLR(optimizer, milestones=[100, 200, 300, 400, 500, 600], gamma=0.5)
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+scheduler = MultiStepLR(optimizer, milestones=[400, 800, 1200], gamma=0.5)
 
 
 def save_top_example(img, savefile):
@@ -173,22 +180,23 @@ for epoch in range(num_epochs):
     
     ls = loss.item()
     lses.append(ls)
-    np.savetxt("../autoencoder_samples/first_attempt/loss_record.csv", lses, delimiter=",")
     print('Epoch [{}/{}], Loss: {:.6f}'.format(epoch+1, num_epochs, ls))
-    
+    np.savetxt("../autoencoder_samples/23_09/loss_record.csv", lses, delimiter=",")
+
+
     if ls < min_loss:
         print('NEW MIN LOSS')
         min_loss = ls
-        torch.save(model.state_dict(), '../autoencoder_samples/first_attempt/conv_autoencoder.pth')
+        torch.save(model.state_dict(), '../autoencoder_samples/23_09/conv_autoencoder.pth')
 
     if epoch % 5== 0:
-        save_top_example(img, f'../autoencoder_samples/first_attempt/epoch_{epoch}_original.png')
-        save_top_example(output, f'../autoencoder_samples/first_attempt/epoch_{epoch}_reconstructed.png')
+        save_top_example(img, f'../autoencoder_samples/23_09/epoch_{epoch}_original.png')
+        save_top_example(output, f'../autoencoder_samples/23_09/epoch_{epoch}_reconstructed.png')
         
     scheduler.step()
 
 # # Save the model
-# torch.save(model.state_dict(), '../autoencoder_samples/first_attempt/conv_autoencoder.pth')
+# torch.save(model.state_dict(), '../autoencoder_samples/23_09//conv_autoencoder.pth')
 
 
 

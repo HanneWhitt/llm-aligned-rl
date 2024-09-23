@@ -9,14 +9,15 @@ import torch
 
 class RandomDataset(Dataset):
 
-    def __init__(self, return_reduced=False):
+    def __init__(self, return_reduced=False, length=10000):
         self.env = gym.make("homegrid-cat")
         self.env.reset()
         self.env_terminated = False
         self.return_reduced = return_reduced
+        self.length = length
     
     def __len__(self):
-        return 10000
+        return self.length
 
     def __getitem__(self, idx):
         if self.env_terminated:
