@@ -30,10 +30,11 @@ class RandomDataset(Dataset):
                 self.env_terminated = True
         if self.return_reduced:
             im = self.env.binary_grid
+            im = im.astype('float32')
         else:
             im = self.env.render()
-        im = im.astype('float32')
-        im = im/255
+            im = im.astype('float32')
+            im = im/255
         im = torch.from_numpy(im)
         im = im.permute(2, 0, 1)
         return im
@@ -43,20 +44,23 @@ if __name__ == "__main__":
 
     from PIL import Image
 
-    ds = RandomDataset()
+    ds = RandomDataset(return_reduced=True)
 
 
 
-    new_item = ds.__getitem__(1).permute(1, 2, 0)
+    new_item = ds.__getitem__(1)#.permute(1, 2, 0)
 
     print(new_item.shape)
 
     new_item = new_item.numpy()
 
-    def save_top_example(img, savefile):
-        imsave = Image.fromarray(img)
-        imsave.save(savefile)
-        print(f"IMAGE SAVED TO {savefile}")
+    print(new_item)
 
-    save_top_example(new_item, '../autoencoder_samples/first_attempt/test.png')
+
+    # def save_top_example(img, savefile):
+    #     imsave = Image.fromarray(img)
+    #     imsave.save(savefile)
+    #     print(f"IMAGE SAVED TO {savefile}")
+
+    # save_top_example(new_item, '../autoencoder_samples/first_attempt/test.png')
     
