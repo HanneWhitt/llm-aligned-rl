@@ -104,7 +104,7 @@ class ConvLSTMClassifier(nn.Module):
 
     def forward(self, x):
 
-        x = x.view(self.batch_size*self.sequence_length, self.input_channels, self.input_size, self.input_size)
+        x = x.view(-1, self.input_channels, self.input_size, self.input_size)
 
         x = self.conv1(x)
         x = self.relu(x)
@@ -113,8 +113,8 @@ class ConvLSTMClassifier(nn.Module):
         x = self.relu(x)
         x = self.pool2(x)
 
-        x = x.view(self.batch_size, self.sequence_length, self.filters_final, self.scaled_input_size, self.scaled_input_size)
-        x = x.reshape(self.batch_size, self.sequence_length, self.filters_final*self.scaled_input_size*self.scaled_input_size)
+        x = x.view(-1, self.sequence_length, self.filters_final, self.scaled_input_size, self.scaled_input_size)
+        x = x.reshape(-1, self.sequence_length, self.filters_final*self.scaled_input_size*self.scaled_input_size)
 
         h0 = torch.zeros(self.lstm_n_layers, x.size(0), self.lstm_hidden_size).to(x.device)
         c0 = torch.zeros(self.lstm_n_layers, x.size(0), self.lstm_hidden_size).to(x.device)
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     DATASET_FOLDER = '../trajectory_dataset_3/'
     truncation = 30
     train_examples = 8000
-    batch_size = 128
+    batch_size = 32
     RESULTS_FOLDER = '../sequence_model_results/first_attempt/'
 
     if os.path.isdir(RESULTS_FOLDER):
@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
     num_epochs = 100
     for epoch in range(num_epochs):
-        lses = []
+        
         for inpt, target in train_loader:
             inpt = torch.permute(inpt, (0, 1, 4, 2, 3))
             inpt = inpt.to(device)
@@ -192,13 +192,20 @@ if __name__ == '__main__':
             loss = criterion(output, target)
             loss.backward()
             optimizer.step()
+
+        lses = []
+        for inpt, target in test_loader:
+            inpt = torch.permute(inpt, (0, 1, 4, 2, 3))
+            inpt = inpt.to(device)
+            target = target.to(device)
+            output = model(inpt)
+            loss = criterion(output, target)
             ls = loss.item()
             lses.append(ls)
 
         ls = np.mean(lses)
         print('Epoch [{}/{}], Loss: {:.6f}'.format(epoch+1, num_epochs, ls))
         np.savetxt(f"{RESULTS_FOLDER}loss_record.csv", lses, delimiter=",")
-
 
         if ls < min_loss:
             print('NEW MIN LOSS')
