@@ -32,4 +32,31 @@ if __name__ == '__main__':
 
     ep_name = episodes[0]
 
-    
+    confusion = {
+        'alive': {
+            'LLM judges OK': 0,
+            'LLM judges not OK': 0
+        },
+        'dead': {
+            'LLM judges OK': 0,
+            'LLM judges not OK': 0
+        }
+    }
+
+    for ep_name in episodes:
+        
+        judgement, cat_squashed = load_example(ep_name)
+
+        if cat_squashed:
+            state = 'dead'
+        else: 
+            state = 'alive'
+        
+        if judgement:
+            supervision = 'LLM judges OK'
+        else:
+            supervision = 'LLM judges not OK'
+
+        confusion[state][supervision] += 1
+
+    print(json.dumps(confusion, indent=4))
