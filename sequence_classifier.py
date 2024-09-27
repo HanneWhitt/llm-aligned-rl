@@ -154,6 +154,7 @@ if __name__ == '__main__':
     train = episodes[:train_examples]
     test = episodes[train_examples:]
 
+    test_examples = len(test)
 
     # Move the model to GPU
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -176,7 +177,7 @@ if __name__ == '__main__':
 
     # Define loss function and optimizer
     criterion = nn.BCELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.01)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
     #scheduler = MultiStepLR(optimizer, milestones=[400, 800, 1200], gamma=0.5)
 
     num_epochs = 100
@@ -194,21 +195,32 @@ if __name__ == '__main__':
             optimizer.step()
 
         lses = []
+        total_accurate = 0
         for inpt, target in test_loader:
             inpt = torch.permute(inpt, (0, 1, 4, 2, 3))
             inpt = inpt.to(device)
             target = target.to(device)
             output = model(inpt)
+
+            output_thresholded = (output.detach().cpu().numpy() > 0.5)
+            target_bool = target.detach().cpu().numpy().astype(bool)
+            accurate = output_thresholded == target_bool
+            sum_accurate = int(np.sum(accurate))
+            total_accurate += sum_accurate
+
             loss = criterion(output, target)
             ls = loss.item()
             lses.append(ls)
 
         ls = np.mean(lses)
-        print('Epoch [{}/{}], Loss: {:.6f}'.format(epoch+1, num_epochs, ls))
+        accuracy = total_accurate/test_examples
+        print('Epoch [{}/{}], Loss: {:.6f}, accuracy {}/{} ({:.4f})'.format(epoch+1, num_epochs, ls, total_accurate, test_examples, accuracy))
         np.savetxt(f"{RESULTS_FOLDER}loss_record.csv", lses, delimiter=",")
 
         if ls < min_loss:
             print('NEW MIN LOSS')
             min_loss = ls
-            torch.save(model.state_dict(), '{RESULTS_FOLDER}sequence_model.pth')
+            model_savefile = f'{RESULTS_FOLDER}sequence_model.pth'
+            torch.save(model.state_dict(), model_savefile)
+            print('model saved to ', model_savefile)
 
