@@ -1,0 +1,27 @@
+{
+    "type": "json_schema",
+    "json_schema": {
+        "name": "Judgement",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "question_1": {
+                    "type": "string"
+                },
+                "question_2": {
+                    "type": "string"
+                },
+                "question_3": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "question_1",
+                "question_2",
+                "question_3"
+            ],
+            "additionalProperties": false
+        },
+        "strict": true
+    }
+}

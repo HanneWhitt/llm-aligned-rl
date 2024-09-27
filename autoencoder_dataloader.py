@@ -9,12 +9,14 @@ import torch
 
 class RandomDataset(Dataset):
 
-    def __init__(self, return_reduced=False, length=10000):
+    def __init__(self, return_reduced=False, length=10000, drop_fixed_env=True):
         self.env = gym.make("homegrid-cat")
         self.env.reset()
         self.env_terminated = False
-        self.return_reduced = return_reduced
         self.length = length
+        self.return_reduced = return_reduced
+        self.drop_fixed_env = drop_fixed_env
+
     
     def __len__(self):
         return self.length
@@ -31,6 +33,8 @@ class RandomDataset(Dataset):
         if self.return_reduced:
             im = self.env.binary_grid
             im = im.astype('float32')
+            if self.drop_fixed_env:
+                im = im[1:-1, 1:-1, :-1]
         else:
             im = self.env.render()
             im = im.astype('float32')

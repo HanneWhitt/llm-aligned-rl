@@ -12,12 +12,14 @@ from PIL import Image
 import numpy as np
 from autoencoder_dataloader import RandomDataset
 from torch.optim.lr_scheduler import MultiStepLR
+import os
+from shutil import rmtree
 
 
 # Define the autoencoder architecture
 #  defining encoder
 class Encoder(nn.Module):
-  def __init__(self, in_channels=4, out_channels=16, latent_dim=200, act_fn=nn.ReLU()):
+  def __init__(self, in_channels=3, out_channels=16, latent_dim=200, act_fn=nn.ReLU()):
     super().__init__()
 
     self.net = nn.Sequential(
@@ -40,7 +42,7 @@ class Encoder(nn.Module):
 
 #  defining decoder
 class Decoder(nn.Module):
-  def __init__(self, in_channels=4, out_channels=16, latent_dim=200, act_fn=nn.ReLU()):
+  def __init__(self, in_channels=3, out_channels=16, latent_dim=200, act_fn=nn.ReLU()):
     super().__init__()
 
     self.out_channels = out_channels
@@ -94,15 +96,15 @@ class Autoencoder(nn.Module):
 # ])
  
 # Load dataset
-train_dataset = RandomDataset()
-test_dataset = RandomDataset()
+train_dataset = RandomDataset(return_reduced=True, length=10000)
+test_dataset = RandomDataset(return_reduced=True, length=10000)
 
 # Define the dataloader
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset, 
-                                           batch_size=32, 
+                                           batch_size=256, 
                                            shuffle=True)
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset, 
-                                          batch_size=32)
+                                          batch_size=256)
  
 # Move the model to GPU
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -118,17 +120,29 @@ if LOAD_MODEL_FROM:
     print('LOADED MODEL FROM ', LOAD_MODEL_FROM, ', resuming training')
 
 
+SAVE_FOLDER = '../autoencoder_samples/reduced_1/'
+if os.path.isdir(SAVE_FOLDER):
+   input('DELETE EXISTING FOLDER? ', SAVE_FOLDER)
+   input('SURE?')
+   rmtree(SAVE_FOLDER)
+os.mkdir(SAVE_FOLDER)
+
+
+
 # Define the loss function and optimizer
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.01)
 scheduler = MultiStepLR(optimizer, milestones=[400, 800, 1200], gamma=0.5)
 
 
-def save_top_example(img, savefile):
-    saveexample  = (img[0].permute(1, 2, 0).detach().cpu().numpy()*255).astype('uint8')
-    imsave = Image.fromarray(saveexample)
-    imsave.save(savefile)
-    print(f"IMAGE SAVED TO {savefile}")
+# def save_top_example(img, savefile):
+#     saveexample  = (img[0].permute(1, 2, 0).detach().cpu().numpy()*255).astype('uint8')
+#     imsave = Image.fromarray(saveexample)
+#     imsave.save(savefile)
+#     print(f"IMAGE SAVED TO {savefile}")
+
+
+
 
 
 min_loss = 1000
@@ -162,11 +176,11 @@ for epoch in range(num_epochs):
     if ls < min_loss:
         print('NEW MIN LOSS')
         min_loss = ls
-        torch.save(model.state_dict(), '../autoencoder_samples/23_09/conv_autoencoder.pth')
+        torch.save(model.state_dict(), f'{SAVE_FOLDER}conv_autoencoder.pth')
 
-    if epoch % 5== 0:
-        save_top_example(img, f'../autoencoder_samples/23_09/epoch_{epoch}_original.png')
-        save_top_example(output, f'../autoencoder_samples/23_09/epoch_{epoch}_reconstructed.png')
+    # if epoch % 5== 0:
+    #     save_top_example(img, f'../autoencoder_samples/23_09/epoch_{epoch}_original.png')
+    #     save_top_example(output, f'../autoencoder_samples/23_09/epoch_{epoch}_reconstructed.png')
         
     scheduler.step()
 

@@ -157,23 +157,27 @@ def image_element(image_path):
     return element
 
 
-def record_feedback(json_file, judgement, steps_used, prompt_used, tokens_spent):
+def record_feedback(json_file, judgement, steps_used, prompt_used, tokens_spent, from_batch_file=None, overwrite=False):
     is_dict = isinstance(judgement, dict)
     feedback = {
         'model_used': 'gpt-4o-mini-2024-07-18',
-        'request_date': str(datetime.now()),
+        'recorded_date': str(datetime.now()),
         'steps_used': steps_used,
         'tokens_spent': tokens_spent,
         'prompt_used': prompt_used,
         'question_1': judgement['question_1'] if is_dict else judgement.question_1,
         'question_2': judgement['question_2'] if is_dict else judgement.question_1,
-        'question_3': judgement['question_3'] if is_dict else judgement.question_1
+        'question_3': judgement['question_3'] if is_dict else judgement.question_1,
+        'from_batch_file': from_batch_file
     }
     with open(json_file) as f:
         json_content = json.load(f)
     if 'feedback' not in json_content:
         json_content = {'feedback': [], **json_content}
-    json_content['feedback'].append(feedback)
+    if overwrite:
+        json_content['feedback'] = [feedback]
+    else:
+        json_content['feedback'].append(feedback)
     with open(json_file, 'w') as f:
         json.dump(json_content, f)
     print('Feedback saved to ', json_file)
@@ -228,7 +232,7 @@ def get_batch_job(batch_id, outfile=None):
             file.write(result)
         print('Saved to ', outfile)
         return result
-    return status.status
+    return status
 
 
 def read_batch_output_file(savefile):
