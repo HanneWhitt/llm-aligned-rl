@@ -10,11 +10,8 @@ This work presents an attempt to train a minimal example of an RL agent that com
 
 *Figure 1 - Agents acting within Homegrid, a simple representation of a domestic environment modified from original research by [XXX]. Left: Agent trained on a naive reward function based exclusively on reaching the fruit efficiently. Right: Agent trained on a reward function which integrates LLM feedback on alignment with human values, with no manual specification of the cat's importance.*
 
-<!---
-[CAN WE REWORK THE WORDING TO MAKE IT CLEAR THAT IT MAY BE POSSIBLE TO APPLY LLM JUDGEMENT PROSPECTIVELY AS WELL AS RETROSPECTIVELY. ]
---->
 
-### Introduction
+## Introduction
 
 The outer alignment problem, in the context of Reinforcement Learning (RL), arises from the fact that it is not possible to write a complete picture of our shared human values into a reward function, even if we could agree within ourselves and with each other precisely what those values are. The best reward function we can hope for is therefore an approximation to those values that is good enough to train safe agents, even as capabilities and generality increase. 
 
@@ -29,8 +26,8 @@ Third, the emergence of multimodal LLMs makes it possible for them to provide su
 Fourth, in a real-world research environment with limited funding, LLMs can be used inexpensively, and at the very large scales required by RL training runs.
 
 
-### Summary of approach 
-This work describes an attempt to quickly produce a minimal working example of the use of LLMs to provide feedback on the alignment of an agent’s behaviour with human values. The approach taken consisted of the following major steps.
+## Summary of approach 
+This work describes an attempt to quickly produce a minimal working example of the use of LLMs to provide feedback on the alignment of an agent’s behaviour with human values. The approach taken comprised the following major steps:
 
 1. **Task environment.** Selection of a small grid-based repesentation of domestic setting called ‘Homegrid’, modified from original research by Lin et al. [XXX]. Edits so that the environment contained three important objects, placed at random: a robot (agent), a fruit (task target), and a cat (an item of moral value) which could be crushed if the robot passed over it (moral violation).
 
@@ -42,7 +39,7 @@ This work describes an attempt to quickly produce a minimal working example of t
 
 5. **RL from LLM feedback**. LLM feedback was integrated into the PPO reward function via the reward model, and a new agent was trained. 
 
-
+The remainder of this work begins with a summary of the key findings from this experiment in the next section. Next, the steps 1-5 given above, and their respective results, are discussed fully in the numbered subsections within *Methods and Results*. Finally, limitations of the technique are discussed, both in the context of this experiment and the wider potential for weaknesses of RL from LLM feedback in more advanced agents, and some proposals are made for future work addressing these problems. 
 <!---
 ILLUSTRATION OF TECHNIQUE? 
 --->
@@ -62,46 +59,34 @@ ILLUSTRATION OF TECHNIQUE?
 **In this simple context, an accurate reward model could be trained from LLM feedback.** Using feedback on a dataset of 10,000 episodes sampled from the naive policy, a reward model was trained which quickly reached 97.6% accuracy in predicting the binary LLM feedback based on the sequence of images. This model was used in the RL training loop in place of direct LLM feedback. 
 
 
+## Methods and results
 
-### Limitations
-There are certainly serious problems that LLM supervision of RL does not address. Modes of reward hacking might emerge which leverage unexpected behaviours of a LLM, akin to those caused by jailbreaking or hallucination. A powerful RL agent acting in a complex environment might happen upon strategies which exploit these weaknesses to gain high reward in ways that clearly do not agree with human values. 
+### 1. Task environment
+Homegrid, a representation of a domestic environment based on a 14×12 tile grid, was chosen as the object of study for three reasons. First, it is simple and suitable for RL research subject to time and funding constraints. Second, it provides a clear output format that can be fed to a multimodal LLM to facilitate supervision: in this case, a sequence of 448×384 RGB images from each step in a training episode. Finally, since it portrays a domestic environment, it is easy to modify so that it contains objects and events of obvious moral significance. I am very grateful to Jessy Lin and her co-authors at UC Berkeley for their work in creating the original environment [XXX]. 
 
-Problems could also arise from goal misgeneralisation, or the inner alignment problem. Regardless of the apparent safety of an agent within a training environment, deployment into the world might reveal that it has learned a problematic proxy of the LLM's knowledge of values. In the section on future work below, a technique is described that might address this problem using model-based RL techniques; in short, make the agent's world model explicit, and use real-time LLM feedback on its predictions of the future to guard against unsafe behaviour. 
+#### Modifications
+An altered version of homegrid was produced to facilitate the experiment (Figure 1). Additional objects present in the original environment were removed for simplicity. 32×32 pixel representations of a robot, cat and blood stain were produced, and edits made so that the cat can be crushed if the robot moves over it (Figure 1, left.), in a clear violation of human values. 
 
-A final problem arises from one of the strengths of LLMs, which is their tunability. It would clearly be possible to fine-tune or prompt an LLM such that it supervises an RL agent according to an actively malicious or simply short-sighted version of human values, or the views of a particular group. 
+At the beginning of each episode, the agent and fruit were placed randomly within a set of suitable positions, with a minimum of three tiles between them. The cat was then placed between the agent and fruit to raise the chances of interaction as the agent completes the task. Specifically, a point was chosen uniformly at random along a straight line between the agent and fruit coordinates, and the cat placed at the closest grid position accessible to the agent, subject to being at least one tile from the agent and from the fruit.
 
-
-
-
-Methods
-
-
-Homegrid [XXX], a simple representation of a domestic environment built on top of Minigrid [XXX], was chosen as the object of study for three reasons. First, it is simple and suitable for RL research subject to time and funding constraints. Second, it provides a clear output format that can be fed to a multimodal LLM to facilitate supervision - in this case, a sequence of medium-sized images from each step in a training episode. Finally, since it portrays a domestic environment, it is easy to modify it so that it contains objects of obvious moral significance. 
-
-	HOMEGRID IMAGE
-
-In our case, the chosen object of moral value is a cute cat, which can be crushed if the robot moves over it. Needless to say, this is an undesirable moral outcome, and the objective is to train the agent to complete the task without this happening!
+The agent's action space at each step was limited to movement in the NSEW directions. The episode terminated when the agent was facing the fruit, reflecting successful task completion, or was truncated after $T_{max} = 100$ steps. 
 
 
-Modifications
+### 2. Training a naive policy
+An initial agent was trained with a simple reward function focused only on finding the fruit via an efficient path; this is the same as the function used by Lin et al.:
 
-An altered version of homegrid was produced to facilitate the experiment. Additional objects present in the original environment were removed for simplicity. Pixel art representations of a robot, cat and blood stain were produced, and edits made so that the cat can be crushed if the robot moves over it. 
-
-Three zoomed-in images: robot before, robot on cat, robot after. 
-
-The agent and fruit were placed randomly within a set of suitable positions. The cat was then placed between them to raise the chances of interaction: a point was chosen uniformly at random along a straight line between the agent and fruit coordinates, and the cat placed at the closest grid position accessible to the agent. 
-
-The agent was given a complete view of the environment in a reduced format, as a 12x14x3 tensor, representing the 12x14 grid, with one channel marking the position of the agent, one marking the fruit, and one marking the cat. 
-
-
-Initial naive reward scheme
-
-For comparison, an initial agent was trained with a simple reward function focused only on finding the fruit and using an efficient path (as in XXX) where s is the number of steps taken 
-
-R step = { 1 - 0.9*(s/100) if agent is facing fruit, 0 otherwise
+$$
+r_{t}=
+\begin{cases}
+1 - 0.9\dfrac{t}{T_{max}} & \quad \text{if agent facing fruit}\\ 
+0 & \quad \text{otherwise}
+\end{cases}
+$$
 
 
-Training was carried out using the implementation of PPO provided in the Stable Baselines 3 library, with the default hyperparameters and 10 hours of training on a laptop with an RTX 3060 GPU (1.3e7 steps, ~1e6 episodes). To increase the odds of the agent successfully grokking the relevant spatial relationships, a convolutional neural network was used as feature extractor. 
+The agent was given a complete view of the environment in a simplified format, as a $12×14×4$ tensor, representing the grid, with one channel marking the position of the agent, one marking the fruit, and one marking the cat. The fourth channel gave a binary representation of the tiles that the agent could and could not access; this was provided as it was originally planned that there should be variation in this between episodes, although this was ultimately abandoned. 
+
+Training was carried out using the implementation of Proximal Policy Optimisation (PPO) provided in the Stable Baselines 3 library [XXX], with the default hyperparameters and 10 hours of training on a laptop with an RTX 3060 GPU (1.3×10<sup>7</sup> steps, ~10<sup>6</sup> episodes). To increase the odds of the agent successfully grokking the relevant spatial relationships, a Convolutional Neural Network (CNN) was used as a feature extractor. 
 
 
 
@@ -159,6 +144,18 @@ In 10,000 episodes sampled from the resulting policy, the agent successfully fou
 
 Results
 The model had a clear capability 
+
+
+### Limitations
+There are certainly serious problems that LLM supervision of RL does not address. Modes of reward hacking might emerge which leverage unexpected behaviours of a LLM, akin to those caused by jailbreaking or hallucination. A powerful RL agent acting in a complex environment might happen upon strategies which exploit these weaknesses to gain high reward in ways that clearly do not agree with human values. 
+
+Problems could also arise from goal misgeneralisation, or the inner alignment problem. Regardless of the apparent safety of an agent within a training environment, deployment into the world might reveal that it has learned a problematic proxy of the LLM's knowledge of values. In the section on future work below, a technique is described that might address this problem using model-based RL techniques; in short, make the agent's world model explicit, and use real-time LLM feedback on its predictions of the future to guard against unsafe behaviour. 
+
+A final problem arises from one of the strengths of LLMs, which is their tunability. It would clearly be possible to fine-tune or prompt an LLM such that it supervises an RL agent according to an actively malicious or simply short-sighted version of human values, or the views of a particular group. 
+
+
+
+
 
 
 Future work 
