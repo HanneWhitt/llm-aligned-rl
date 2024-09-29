@@ -75,7 +75,6 @@ The agent's action space at each step was limited to movement in the NSEW direct
 ### 2. Training a naive policy
 An initial agent was trained with a simple reward function focused only on finding the fruit via an efficient path; this is the same as the function used by Lin et al.:
 
-{% raw %}
 $$
 r_{t}=
 \begin{cases}
@@ -83,7 +82,6 @@ r_{t}=
 0 & \quad \text{otherwise}
 \end{cases}
 $$
-{% endraw %}
 
 The agent was given a complete view of the environment in a simplified format, as a $12×14×4$ tensor, representing the grid, with one channel marking the position of the agent, one marking the fruit, and one marking the cat. The fourth channel gave a binary representation of the tiles that the agent could and could not access; this was provided as it was originally planned that there should be variation in this between episodes, although this was ultimately abandoned. 
 
