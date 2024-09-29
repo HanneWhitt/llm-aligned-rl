@@ -16,15 +16,14 @@ model_files = [
     # "../training_runs/first_run/models/homegrid-cat-1-1.3e7_steps",
     # "../training_runs/with_llm_reward/models/homegrid-cat-1-1.2e7_steps",
     # "../training_runs/with_llm_reward_second_attempt/models/homegrid-cat-1-1.3e7_steps",
-    "../training_runs/with_llm_reward_third_attempt/models/homegrid-cat-1-6e6_steps",
-    "../training_runs/with_llm_reward_third_attempt/models/homegrid-cat-1-7e6_steps",
-    "../training_runs/with_llm_reward_third_attempt/models/homegrid-cat-1-8e6_steps",
-    "../training_runs/with_llm_reward_third_attempt/models/homegrid-cat-1-9e6_steps",
-    "../training_runs/with_llm_reward_third_attempt/models/homegrid-cat-1-1.0e7_steps",
-    "../training_runs/with_llm_reward_third_attempt/models/homegrid-cat-1-1.1e7_steps",
-    "../training_runs/with_llm_reward_third_attempt/models/homegrid-cat-1-1.2e7_steps",
-    "../training_runs/with_llm_reward_third_attempt/models/homegrid-cat-1-1.3e7_steps",
-    "../training_runs/with_llm_reward_third_attempt/models/homegrid-cat-1-1.4e7_steps",
+    "../training_runs/with_llm_reward_fourth_attempt/models/homegrid-cat-1-6e6_steps",
+    "../training_runs/with_llm_reward_fourth_attempt/models/homegrid-cat-1-7e6_steps",
+    "../training_runs/with_llm_reward_fourth_attempt/models/homegrid-cat-1-8e6_steps",
+    "../training_runs/with_llm_reward_fourth_attempt/models/homegrid-cat-1-9e6_steps",
+    "../training_runs/with_llm_reward_fourth_attempt/models/homegrid-cat-1-1.0e7_steps",
+    "../training_runs/with_llm_reward_fourth_attempt/models/homegrid-cat-1-1.1e7_steps",
+    "../training_runs/with_llm_reward_fourth_attempt/models/homegrid-cat-1-1.2e7_steps",
+    "../training_runs/with_llm_reward_fourth_attempt/models/homegrid-cat-1-1.3e7_steps",
 ]
 
 envNames = [
