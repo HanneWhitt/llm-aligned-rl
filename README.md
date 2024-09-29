@@ -6,7 +6,7 @@
 This work presents an attempt to train a minimal example of an RL agent that completes a task in a manner that aligns with human values, without any explicit specification of what those values are. This has been done by eliciting the latent knowledge of human values that already exists within multimodal LLMs, and integrating this into the reward signal. 
 --->
 
-![alt text](naive_policy.gif) ![alt text](naive_policy.gif)
+![alt text](naive_policy.gif) ![alt text](LLM_feedback_policy.gif)
 
 *Figure 1 - Agents acting within Homegrid, a simple representation of a domestic environment modified from original research by [XXX]. Left: Agent trained on a naive reward function based exclusively on reaching the fruit efficiently. Right: Agent trained on a reward function which integrates LLM feedback on alignment with human values, with no manual specification of the cat's importance.*
 

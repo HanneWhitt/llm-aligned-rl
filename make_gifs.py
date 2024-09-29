@@ -22,6 +22,6 @@ if __name__ == "__main__":
     # 
     # frame_folders = sys.argv[1:]
 
-    frame_folders = [f'../trajectory_dataset_3/episode_{i}/' for i in range(10)]
+    frame_folders = [f'../final_analysis_set/episode_{i}/' for i in range(10)]
 
-    make_gif(frame_folders, out='../figures/naive_policy.gif')
+    make_gif(frame_folders, out='../figures/LLM_feedback_policy.gif')

@@ -12,7 +12,7 @@ import json
 from shutil import rmtree
 
 
-# model_file = "../training_runs/first_run/models/homegrid-cat-1-1.3e7_steps"
+model_file = "../training_runs/with_llm_reward_fourth_attempt/models/homegrid-cat-1-1.3e7_steps"
 
 model = PPO.load(model_file)
 
