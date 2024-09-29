@@ -2,35 +2,42 @@
 
 ### Abstract
 
-I present an attempt to train a minimal example of an RL agent that completes a task in a manner that aligns with human values, without any explicit specification of what those values are. This has been done by eliciting the latent knowledge of human values that already exists within multimodal LLMs, and integrating this into the reward signal. 
+This work presents an attempt to train a minimal example of an RL agent that completes a task in a manner that aligns with human values, without any explicit specification of what those values are. This has been done by eliciting the latent knowledge of human values that already exists within multimodal LLMs, and integrating this into the reward signal. 
 
 <!---
 GIF - with and without LLM feedback. 
 --->
 ![alt text](naive_policy.gif) ![alt text](naive_policy.gif)
 
-*image_caption*
+*Figure 1 - Agents acting within Homegrid, a simple representation of a domestic environment modified from original research by [XXX]. Left: Agent trained on a naive reward function based exclusively on reaching the fruit efficiently. Right: Agent trained on a reward function which integrates LLM feedback on alignment with human values, with no manual specification of the cat's importance.*
+
 <!---
 [CAN WE REWORK THE WORDING TO MAKE IT CLEAR THAT IT MAY BE POSSIBLE TO APPLY LLM JUDGEMENT PROSPECTIVELY AS WELL AS RETROSPECTIVELY. ]
 --->
 
 ### Introduction
 
-The outer alignment problem, in the context of RL, arises from the fact that it is not possible to write a complete picture of our shared human values into a reward function, even if we could agree with ourselves and each other precisely what those values are. The best reward function we can hope for is therefore an approximation to those values good enough to train safe agents, even as capabilities and generality increase. 
+The outer alignment problem, in the context of RL, arises from the fact that it is not possible to write a complete picture of our shared human values into a reward function, even if we could agree within ourselves and with each other precisely what those values are. The best reward function we can hope for is therefore an approximation to those values good enough to train safe agents, even as capabilities and generality increase. 
 
-The proposition of this work is that a reward function based on feedback from multimodal LLMs, or future generative models, may be the best candidate for this good-enough approximation. This is suggested for three main reasons.
+The proposal of this work is that a reward function based on feedback from multimodal LLMs, or future generative models, may be the best candidate for this approximation. This is suggested for four main reasons.
 
-First, research into producing LLMs that behave as we intend has in broad terms been quite successful. 
+First, modern LLMs have a deep and broad latent knowledge of human values, which is simple to elicit. This is natural given the depth and breadth of their training sets, which feature both philosopical texts examining complex ethical dilemmas, and vast volumes of text written by ordinary people, describing, explictly or implicitly, the common-sense values of everyday life. 
 
-Second, modern LLMs have a deep and broad latent knowledge of human values, ranging from everyday common-sense to more complex ethical problems. Alongside formal philosophical texts, Their training set features large volumes of text describing everyday ethical behaviour. LINKS TO CAI - lean on LATENT KNOWLEDGE, not PERFECT ALIGNMENT
+Second, research into tuning LLMs to behave as we would like has, in broad terms, been very successful. Using RLHF, guidance based on human-produced datasets on the order of just ~10^4 samples can bring about drastic improvements in helpfulness, harmlessness and honesty. Further to this, it may be that we do not need to produce LLMs that behave in full alignment to our values in order to use them to supervise RL; it may be sufficient to have (i) a helpful LLM, with (ii) strong latent knowledge of human values. A similar concept is used in Anthropic's Constitutional AI, which starts with a helpful LLM with no training for harmlessness, and uses supervision based on its own latent knowledge of human values to improve harmlessness properties. 
 
-Third, in a real-world research environment with limited funding, it must also be available for use inexpensively, and at the very large scales required by RL training runs.
+Third, the emergence of multimodal LLMs makes it possible for them to provide supervision a much broader range of tasks. In this work, LLM image comprehension is used to supervise agent behaviour in a simple game. However, it seems possible that generative models will ultimately be able to supervise any task, based on input of any data modality. 
+
+Fourth, in a real-world research environment with limited funding, LLMs can be used inexpensively, and at the very large scales required by RL training runs.
 
 
-EXISTING WORK?
+### Limitations
+However, there are certainly serious problems that LLM supervision of RL does not address. Types of reward hacking might emerge which leverage unexpected behaviours of a LLM, akin to those caused by jailbreaking or hallucination. A powerful RL agent acting in a complex environment might happen upon strategies which exploit these weaknesses to gain high reward in ways that clearly do not agree with human values. 
+
+Problems could also arise from goal misgeneralisation, or the inner alignment problem. Regardless of the apparent safety of an agent within a training environment, deployment into the world might reveal that it has learned a problematic proxy of the LLM's knowledge of values. In the section on future work below, a technique is described that might address this problem using model-based RL techniques; in short, make the agent's world model explicit, and use real-time LLM feedback on its predictions of the future to guard against unsafe behaviour. 
 
 
-The rest of this work describes an attempt made to quickly produce a minimal working example of the use of LLMs to provide feedback on the alignment of an agent’s behaviour with human values. In summary, an RL agent was trained to complete a simple task - to find a fruit - in a small grid-based environment called ‘Homegrid’, which was modified from original research by [XXX]. An item of moral significance - a cat! - was introduced into the environment alongside the agent and fruit, and LLM feedback was then used to train the agent to complete the task without harming the cat, without any explicit specification being made that that the cat was of value. 
+### Outline
+The rest of this work describes an attempt to quickly produce a minimal working example of the use of LLMs to provide feedback on the alignment of an agent’s behaviour with human values. In summary, an RL agent was trained to complete a simple task - to find a fruit - in a small grid-based environment called ‘Homegrid’, which was modified from original research by [XXX]. An item of moral significance - a cat! - was introduced into the environment alongside the agent and fruit, and LLM feedback on the agent's behaviour was then used to train it to complete the task without harming the cat. No  specification was made to the LLM that that the cat was of value. 
 
 
 
@@ -120,3 +127,7 @@ In 10,000 episodes sampled from the resulting policy, the agent successfully fou
 
 Results
 The model had a clear capability 
+
+
+Future work 
+WORLD MODELLING
