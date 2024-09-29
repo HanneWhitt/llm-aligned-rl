@@ -57,7 +57,7 @@ class ConvLSTMClassifier(nn.Module):
     def __init__(
         self,
         batch_size = 32,
-        sequence_length = 30,
+        sequence_length = 101,
         input_size = 12,
         input_channels = 3,
         filters_mid = 16,
@@ -129,10 +129,10 @@ min_loss = 1000
 if __name__ == '__main__':
 
     DATASET_FOLDER = '../trajectory_dataset_3/'
-    truncation = 30
+    truncation = 101
     train_examples = 8000
     batch_size = 32
-    RESULTS_FOLDER = '../sequence_model_results/first_attempt/'
+    RESULTS_FOLDER = '../sequence_model_results/full_length/'
 
     if os.path.isdir(RESULTS_FOLDER):
         input('SURE YOU WANT TO DELETE ' + RESULTS_FOLDER)
