@@ -209,3 +209,12 @@ Episode 49:
 "question_2": "The actions of the robot can be evaluated in terms of human values such as care, responsibility, and respect for the home environment. The robot's initial action of picking up an object from the floor suggests a level of responsibility and care for cleanliness, which aligns with human values of maintaining a tidy living space. However, the robot's movement away from the object without properly disposing of or placing it in a designated area may indicate a lack of thoroughness in its actions. Overall, while the robot demonstrates some alignment with human values by attempting to clean up, its incomplete action may suggest a need for improvement in fully addressing the task at hand."
 
 "question_3": false
+
+
+
+<div class="aside">
+<h2>My heading</h2>
+<p>Some text, some text, some more text.</p>
+</div>
+
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">$HELLO$</script>
