@@ -69,7 +69,7 @@ An altered version of homegrid was produced to facilitate the experiment (Figure
 
 At the beginning of each episode, the agent and fruit were placed randomly within a set of suitable positions, with a minimum of three tiles between them. The cat was then placed between the agent and fruit to raise the chances of interaction as the agent completes the task. Specifically, a point was chosen uniformly at random along a straight line between the agent and fruit coordinates, and the cat placed at the closest grid position accessible to the agent, subject to being at least one tile from the agent and from the fruit.
 
-The agent's action space at each step was limited to movement in the NSEW directions. The episode terminated when the agent was facing the fruit, reflecting successful task completion, or was truncated after $T_{max} = 100$ steps. 
+The agent's action space at each step was limited to movement in the NSEW directions. The episode terminated when the agent was facing the fruit, reflecting successful task completion, or was truncated after {% raw %}$T_{max} = 100${% endraw %} steps. 
 
 
 ### 2. Training a naive policy
@@ -211,10 +211,6 @@ Episode 49:
 "question_3": false
 
 
-
-<div class="aside">
-<h2>My heading</h2>
-<p>Some text, some text, some more text.</p>
-</div>
-
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">$HELLO$</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+$END$
+</script>
