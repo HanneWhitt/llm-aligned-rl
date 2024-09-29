@@ -19,7 +19,7 @@ The proposal of this work is that a reward function based on feedback from multi
 
 First, modern LLMs have a deep and broad latent knowledge of human values, which is simple to elicit. This is natural given the depth and breadth of their training sets, which feature both philosopical texts examining complex ethical dilemmas, and vast volumes of text written by ordinary people, describing, explictly or implicitly, the common-sense values of everyday life. 
 
-Second, research into tuning LLMs to behave as we would like has, in broad terms, been very successful. Using Reinforcement Learning from Human Feedback (RLHF), guidance based on human-produced datasets on the order of just ~10^4 samples can bring about drastic improvements in helpfulness, harmlessness and honesty. Further to this, it may be that we do not need to produce LLMs that behave in full alignment to our values in order to use them to supervise RL: it could be sufficient to have (i) a helpful LLM, with (ii) strong latent knowledge of human values. A similar concept is used in Anthropic's Constitutional AI, which starts with a helpful LLM with no training for harmlessness, and uses supervision based on its own latent knowledge of human values to improve harmlessness properties. 
+Second, research into tuning LLMs to behave as we would like has, in broad terms, been very successful. Using Reinforcement Learning from Human Feedback (RLHF), guidance based on human-produced datasets on the order of just ~10<sup>4</sup> samples can bring about drastic improvements in helpfulness, harmlessness and honesty. Further to this, it may be that we do not need to produce LLMs that themselves behave in full alignment to our values in order to use them to supervise RL: it could be sufficient to have (i) a helpful LLM, with (ii) strong latent knowledge of human values. A similar concept is used in Anthropic's Constitutional AI [XXX], which starts with a helpful LLM with no training for harmlessness, and uses supervision based on its own latent knowledge of human values to improve harmlessness properties. 
 
 Third, the emergence of multimodal LLMs makes it possible for them to provide supervision on a much broader range of tasks. In this work, LLM image comprehension is used to supervise agent behaviour in a simple game; more generally, it seems possible that generative models will ultimately be able to supervise any task, based on input of any data modality. 
 
@@ -45,8 +45,8 @@ ILLUSTRATION OF TECHNIQUE?
 --->
 
 
-### Key Findings
-**In this simple context, the technique successfully improves safety properties.** In this very simple example, training with LLM feedback drastically reduces the likelihood of harm to the cat. The cat survives in XXX% of 10,000 sampled episodes with the policy trained with LLM feedback, improved from XXX% in the naive policy, with only a small decline in performance on the task (XXX% to XXX%).
+## Key Findings
+**In this simple example, RL from LLM feedback successfully improves alignment properties.** In this very simple example, training with LLM feedback drastically reduces the likelihood of harm to the cat. The cat survives in XXX% of 10,000 sampled episodes with the policy trained with LLM feedback, improved from XXX% in the naive policy, with only a small decline in performance on the task (XXX% to XXX%).
 
 **GPT-4o-mini can make simple moral judgements based on a series of images.** In the vast majority of cases, GPT-4o-mini recognised the harmful interaction between the robot when it occurred in the image sequences and provided negative feedback as a result. It also provided positive feedback when this did not occur. 
 
@@ -54,9 +54,9 @@ ILLUSTRATION OF TECHNIQUE?
 
 **Feedback from GPT-4o-mini is highly sensitive to small changes in prompt wording.** While very little in the prompt was changed prior to the final version shown in Box XXX, one version used the phrase 'violate human values' instead of 'align with human values' to emphasise detection of serious negative outcomes. This resulted in almost uniform negative feedback, with the LLM critiqueing things like the possible invasion of privacy by the robot. 
 
-**Integrating LLM feedback directly into the RL training loop is costly, but possible.** Obtaining good performance from the agent usually required ~10^6 training episodes; using the OpenAI batch API, the total cost of obtaining direct LLM feedback on each episode would have been in the low thousands of dollars. Training agents in more complex environments might very well make the costs totally infeasible, however. 
+**Integrating LLM feedback directly into the RL training loop would have been possible in this setting.** Obtaining good performance from the agent usually required 10<sup>6</sup> training episodes; using the OpenAI batch API, the total cost of obtaining direct LLM feedback on each episode would have been in the low thousands of dollars. Training agents in more complex environments might very well make the costs totally infeasible, however. 
 
-**In this simple context, an accurate reward model could be trained from LLM feedback.** Using feedback on a dataset of 10,000 episodes sampled from the naive policy, a reward model was trained which quickly reached 97.6% accuracy in predicting the binary LLM feedback based on the sequence of images. This model was used in the RL training loop in place of direct LLM feedback. 
+**In this simple example, an accurate reward model could be trained from LLM feedback.** Using feedback on a dataset of 10,000 episodes sampled from the naive policy, a reward model was trained which quickly reached 97.6% accuracy in predicting the binary LLM feedback based on the sequence of images. This model was used in the RL training loop in place of direct LLM feedback. 
 
 
 ## Methods and results
@@ -75,6 +75,7 @@ The agent's action space at each step was limited to movement in the NSEW direct
 ### 2. Training a naive policy
 An initial agent was trained with a simple reward function focused only on finding the fruit via an efficient path; this is the same as the function used by Lin et al.:
 
+{% raw %}
 $$
 r_{t}=
 \begin{cases}
@@ -82,7 +83,7 @@ r_{t}=
 0 & \quad \text{otherwise}
 \end{cases}
 $$
-
+{% endraw %}
 
 The agent was given a complete view of the environment in a simplified format, as a $12×14×4$ tensor, representing the grid, with one channel marking the position of the agent, one marking the fruit, and one marking the cat. The fourth channel gave a binary representation of the tiles that the agent could and could not access; this was provided as it was originally planned that there should be variation in this between episodes, although this was ultimately abandoned. 
 
