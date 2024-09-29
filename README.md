@@ -16,25 +16,40 @@ This work presents an attempt to train a minimal example of an RL agent that com
 
 ### Introduction
 
-The outer alignment problem, in the context of RL, arises from the fact that it is not possible to write a complete picture of our shared human values into a reward function, even if we could agree within ourselves and with each other precisely what those values are. The best reward function we can hope for is therefore an approximation to those values that is good enough to train safe agents, even as capabilities and generality increase. 
+The outer alignment problem, in the context of Reinforcement Learning (RL), arises from the fact that it is not possible to write a complete picture of our shared human values into a reward function, even if we could agree within ourselves and with each other precisely what those values are. The best reward function we can hope for is therefore an approximation to those values that is good enough to train safe agents, even as capabilities and generality increase. 
 
-The proposal of this work is that a reward function based on feedback from multimodal LLMs, or future generative models, may be the best candidate for this approximation. This is suggested for four main reasons.
+The proposal of this work is that a reward function based on feedback from multimodal Large Language Models (LLMs), or future generative models, may be the best candidate for this approximation. This is suggested for four main reasons.
 
 First, modern LLMs have a deep and broad latent knowledge of human values, which is simple to elicit. This is natural given the depth and breadth of their training sets, which feature both philosopical texts examining complex ethical dilemmas, and vast volumes of text written by ordinary people, describing, explictly or implicitly, the common-sense values of everyday life. 
 
-Second, research into tuning LLMs to behave as we would like has, in broad terms, been very successful. Using RLHF, guidance based on human-produced datasets on the order of just ~10^4 samples can bring about drastic improvements in helpfulness, harmlessness and honesty. Further to this, it may be that we do not need to produce LLMs that behave in full alignment to our values in order to use them to supervise RL: it could be sufficient to have (i) a helpful LLM, with (ii) strong latent knowledge of human values. A similar concept is used in Anthropic's Constitutional AI, which starts with a helpful LLM with no training for harmlessness, and uses supervision based on its own latent knowledge of human values to improve harmlessness properties. 
+Second, research into tuning LLMs to behave as we would like has, in broad terms, been very successful. Using Reinforcement Learning from Human Feedback (RLHF), guidance based on human-produced datasets on the order of just ~10^4 samples can bring about drastic improvements in helpfulness, harmlessness and honesty. Further to this, it may be that we do not need to produce LLMs that behave in full alignment to our values in order to use them to supervise RL: it could be sufficient to have (i) a helpful LLM, with (ii) strong latent knowledge of human values. A similar concept is used in Anthropic's Constitutional AI, which starts with a helpful LLM with no training for harmlessness, and uses supervision based on its own latent knowledge of human values to improve harmlessness properties. 
 
-Third, the emergence of multimodal LLMs makes it possible for them to provide supervision a much broader range of tasks. In this work, LLM image comprehension is used to supervise agent behaviour in a simple game. However, it seems possible that generative models will ultimately be able to supervise any task, based on input of any data modality. 
+Third, the emergence of multimodal LLMs makes it possible for them to provide supervision on a much broader range of tasks. In this work, LLM image comprehension is used to supervise agent behaviour in a simple game; more generally, it seems possible that generative models will ultimately be able to supervise any task, based on input of any data modality. 
 
 Fourth, in a real-world research environment with limited funding, LLMs can be used inexpensively, and at the very large scales required by RL training runs.
 
 
-### Outline
-This work describes an attempt to quickly produce a minimal working example of the use of LLMs to provide feedback on the alignment of an agent’s behaviour with human values. In summary, an RL agent was trained to complete a simple task - to find a fruit - in a small grid-based environment called ‘Homegrid’, which was modified from original research by [XXX]. An item of moral significance - a cat! - was introduced into the environment alongside the agent and fruit, and LLM feedback on the agent's behaviour was then used to train it to complete the task without harming the cat. No  specification was made to the LLM that that the cat was of value. 
+### Summary of approach 
+This work describes an attempt to quickly produce a minimal working example of the use of LLMs to provide feedback on the alignment of an agent’s behaviour with human values. The approach taken consisted of the following major steps.
+
+1. **Task environment.** Selection of a small grid-based repesentation of domestic setting called ‘Homegrid’, modified from original research by Lin et al. [XXX]. Edits so that the environment contained three important objects, placed at random: a robot (agent), a fruit (task target), and a cat (an item of moral value) which could be crushed if the robot passed over it (moral violation).
+
+2. **Training a naive policy.** A policy was trained using PPO with a reward function featuring only the completion of the task (find the fruit). As expected, the resulting policy crushes the cat in a high proportion of episodes, demonstrating misaligned behaviour. 
+
+3. **LLM supervision.** The sequences of images representing 10,000 episodes sampled from the naive policy were submitted to GPT-4o-mini, each prefaced by a prompt requesting simple binary feedback on whether the agent's actions align with human values. Importantly, no specification was made that the cat is of value. 
+
+4. **Reward model.** Based on the 10,000 responses, a reward model (RM) was trained to predict the LLM feedback from the sequence of images representing an episode. A high accuracy of 97.6% was achieved. 
+
+5. **RL from LLM feedback**. LLM feedback was integrated into the PPO reward function via the reward model, and a new agent was trained. 
+
+
+<!---
+ILLUSTRATION OF TECHNIQUE? 
+--->
 
 
 ### Key Findings
-**In this limited context, the technique successfully improves safety properties.** In this very simple example, training with LLM feedback drastically reduces the likelihood of harm to the cat. Sampling 10,000 episodes from the trained policies, the cat survives in XXX% of the episodes in the policy trained with LLM feedback, improved from XXX% in the naive policy, with only a small decline in performance on the original task (XXX% to XXX%).
+**In this simple context, the technique successfully improves safety properties.** In this very simple example, training with LLM feedback drastically reduces the likelihood of harm to the cat. The cat survives in XXX% of 10,000 sampled episodes with the policy trained with LLM feedback, improved from XXX% in the naive policy, with only a small decline in performance on the task (XXX% to XXX%).
 
 **GPT-4o-mini can make simple moral judgements based on a series of images.** In the vast majority of cases, GPT-4o-mini recognised the harmful interaction between the robot when it occurred in the image sequences and provided negative feedback as a result. It also provided positive feedback when this did not occur. 
 
@@ -42,9 +57,9 @@ This work describes an attempt to quickly produce a minimal working example of t
 
 **Feedback from GPT-4o-mini is highly sensitive to small changes in prompt wording.** While very little in the prompt was changed prior to the final version shown in Box XXX, one version used the phrase 'violate human values' instead of 'align with human values' to emphasise detection of serious negative outcomes. This resulted in almost uniform negative feedback, with the LLM critiqueing things like the possible invasion of privacy by the robot. 
 
-**Integrating LLM feedback directly into the RL training loop is costly, but possible.** Obtaining good performance on the task usually required ~10^6 training episodes; using the OpenAI batch API, the total cost of obtaining direct LLM feedback on each episode would have been in the low thousands. Training agents in more complex environments might very well make the costs totally infeasible, however. 
+**Integrating LLM feedback directly into the RL training loop is costly, but possible.** Obtaining good performance from the agent usually required ~10^6 training episodes; using the OpenAI batch API, the total cost of obtaining direct LLM feedback on each episode would have been in the low thousands of dollars. Training agents in more complex environments might very well make the costs totally infeasible, however. 
 
-**In this limited context, an accurate reward model could be trained from LLM feedback.** Using feedback on a dataset of 10,000 episodes sampled from the naive policy, a reward model was trained which quickly reached 97.6% accuracy in predicting the binary LLM feedback based on the sequence of images. This model was used in the RL training loop in place of direct LLM feedback. 
+**In this simple context, an accurate reward model could be trained from LLM feedback.** Using feedback on a dataset of 10,000 episodes sampled from the naive policy, a reward model was trained which quickly reached 97.6% accuracy in predicting the binary LLM feedback based on the sequence of images. This model was used in the RL training loop in place of direct LLM feedback. 
 
 
 
