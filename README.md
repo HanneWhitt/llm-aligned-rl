@@ -23,7 +23,7 @@ The proposal of this work is that a reward function based on feedback from multi
 
 First, modern LLMs have a deep and broad latent knowledge of human values, which is simple to elicit. This is natural given the depth and breadth of their training sets, which feature both philosopical texts examining complex ethical dilemmas, and vast volumes of text written by ordinary people, describing, explictly or implicitly, the common-sense values of everyday life. 
 
-Second, research into tuning LLMs to behave as we would like has, in broad terms, been very successful. Using Reinforcement Learning from Human Feedback (RLHF), guidance based on human-produced datasets on the order of just ~10<sup>4</sup> samples can bring about drastic improvements in helpfulness, harmlessness and honesty[[2]](#InstructGPT). Further to this, it may be that we do not need to produce LLMs that themselves behave in full alignment to our values in order to use them to supervise RL: it could be sufficient to have (i) a helpful LLM, with (ii) strong latent knowledge of human values. A similar concept is used in Anthropic's Constitutional AI [[3]](#CAI), which starts with a helpful LLM with no training for harmlessness, and uses supervision based on its own latent knowledge of human values to improve harmlessness properties. 
+Second, research into tuning LLMs to behave as we would like has, in broad terms, been very successful. Using Reinforcement Learning from Human Feedback (RLHF), guidance based on human-produced datasets on the order of just ~10<sup>4</sup> samples can bring about drastic improvements in helpfulness, harmlessness and honesty [[2]](#InstructGPT). Further to this, it may be that we do not need to produce LLMs that themselves behave in full alignment to our values in order to use them to supervise RL: it could be sufficient to have (i) a helpful LLM, with (ii) strong latent knowledge of human values. A similar concept is used in Anthropic's Constitutional AI [[3]](#CAI), which starts with a helpful LLM with no training for harmlessness, and uses supervision based on its own latent knowledge of human values to improve harmlessness properties. 
 
 Third, the emergence of multimodal LLMs makes it possible for them to provide supervision on a much broader range of tasks. In this work, LLM image comprehension is used to supervise agent behaviour in a simple game; more generally, it seems possible that generative models will ultimately be able to supervise any task, based on input of any data modality. 
 
@@ -50,7 +50,7 @@ ILLUSTRATION OF TECHNIQUE?
 
 
 ## Key Findings
-**In this simple example, RL from LLM feedback successfully improves alignment properties.** In this minimal setting, training with LLM feedback significantly reduces the likelihood of harm to the cat, although it is not eliminated. The cat survives in 96.9% of 10,000 sampled episodes with the policy trained with LLM feedback, improved from 37.6% with the naive policy, with a small decline in completion of the task (99.0% to 94.1%).
+**In this limited example, RL from LLM feedback successfully improves alignment properties.** In this minimal setting, training with LLM feedback significantly reduces the likelihood of harm to the cat, although it is not eliminated. The cat survives in 96.9% of 10,000 sampled episodes with the policy trained with LLM feedback, improved from 37.6% with the naive policy, with a small decline in completion of the task (99.0% to 94.1%).
 
 **GPT-4o-mini can make simple moral judgements based on a series of images.** In the vast majority (97.0%) of cases, GPT-4o-mini recognised the harmful interaction between the robot when it occurred in the image sequences and provided negative feedback as a result. It also provided positive feedback when this did not occur. 
 
@@ -61,13 +61,16 @@ ILLUSTRATION OF TECHNIQUE?
 
 **Integrating LLM feedback directly into the RL training loop would have been possible in this setting.** Obtaining good performance from the agent usually required 10<sup>6</sup> training episodes; using the OpenAI batch API, the total cost of obtaining direct LLM feedback on each episode would have been in the low thousands of dollars. Training agents in more complex environments might very well make the costs totally infeasible, however. 
 
-**In this simple example, an accurate reward model could be trained from LLM feedback.** Using feedback on a dataset of 10,000 episodes sampled from the naive policy, a reward model was trained which quickly reached 97.6% accuracy in predicting the binary LLM feedback based on the sequence of images. This model was used in the RL training loop in place of direct LLM feedback. 
+**In this limited example, an accurate reward model could be trained from LLM feedback.** Using feedback on a dataset of 10,000 episodes sampled from the naive policy, a reward model was trained which quickly reached 97.6% accuracy in predicting the binary LLM feedback based on the sequence of images. This model was used in the RL training loop in place of direct LLM feedback. 
+
+
+
 
 
 ## Methods and results
 
 ### 1. Task environment
-Homegrid, a representation of a domestic environment based on a 14×12 tile grid, was chosen as the object of study for three reasons. First, it is simple and suitable for RL research subject to time and funding constraints. Second, it provides a clear output format that can be fed to a multimodal LLM to facilitate supervision: in this case, a sequence of 448×384 RGB images from each step in a training episode. Finally, since it portrays a domestic environment, it is easy to modify so that it contains objects and events of obvious moral significance. I am very grateful to Jessy Lin and her co-authors at UC Berkeley for their work in creating the original environment [XXX]. 
+Homegrid, a representation of a domestic environment based on a 14×12 tile grid, was chosen as the object of study for three reasons. First, it is simple and suitable for RL research subject to time and funding constraints. Second, it provides a clear output format that can be fed to a multimodal LLM to facilitate supervision: in this case, a sequence of 448×384 RGB images from each step in a training episode. Finally, since it portrays a domestic environment, it is easy to modify so that it contains objects and events of obvious moral significance. I am very grateful to Jessy Lin and her co-authors at UC Berkeley for their work in creating the original environment [[1]](#lin). 
 
 #### Modifications
 An altered version of homegrid was produced to facilitate the experiment (Figure 1). Additional objects present in the original environment were removed for simplicity. 32×32 pixel representations of a robot, cat and blood stain were produced, and edits made so that the cat can be crushed if the robot moves over it (Figure 1, left.), in a clear violation of human values. 
@@ -88,9 +91,11 @@ r_{t}=
 \end{cases}
 $$
 
-The agent was given a complete view of the environment in a simplified format, as a $12×14×4$ tensor, representing the grid, with one channel marking the position of the agent, one marking the fruit, and one marking the cat. The fourth channel gave a binary representation of the tiles that the agent could and could not access; this was provided as it was originally planned that there should be variation in this between episodes, although this was ultimately abandoned. 
+where $t$ is the index of the time step and $r_{t}$ is the reward at that step.
 
-Training was carried out using the implementation of Proximal Policy Optimisation (PPO) provided in the Stable Baselines 3 library [XXX], with the default hyperparameters and 10 hours of training on a laptop with an RTX 3060 GPU (1.3×10<sup>7</sup> steps, ~10<sup>6</sup> episodes). To increase the odds of the agent successfully grokking the relevant spatial relationships, a Convolutional Neural Network (CNN) was used as a feature extractor. 
+The agent was given a complete view of the environment in a simplified format as a 12×14×4 tensor representing the grid, with one channel marking the position of the agent, one marking the fruit, and one marking the cat. The fourth channel gave a binary representation of the tiles that the agent could and could not access; this was provided as it was originally planned that there should be variation in this between episodes, although this was ultimately abandoned. 
+
+Training was carried out using the implementation of Proximal Policy Optimisation (PPO) provided in the Stable Baselines 3 library [[4]](#SB3), with the default hyperparameters and 10 hours of training on a laptop with an RTX 3060 GPU (1.3×10<sup>7</sup> steps, ~10<sup>6</sup> episodes). To increase the odds of the agent successfully grokking the relevant spatial relationships, a Convolutional Neural Network (CNN) was used as a feature extractor. 
 
 #### Results
 As expected, the agent learned to perform well in the task of finding the fruit, 
@@ -124,6 +129,17 @@ Using the
 #### Results
 Example responses to these questions can be seen in 
 
+&nbsp;
+
+|  | Cat alive | Cat dead |
+| :-----: | :-----: | :-----: |
+| LLM says OK | 3748 | 188 |
+| LLM says not OK | 12 | 6052 |
+
+*Table 1 - Summary of final results.*
+
+&nbsp;
+
 
 
 ### Reward model
@@ -151,6 +167,19 @@ Results
 The model had a clear capability 
 
 
+&nbsp;
+
+|  | Naive policy | LLM feedback | LLM feedback |
+| :-----: | :-----: | :-----: | :-----: |
+| Cat survives (%) | 37.6 | 93.6 | **96.9** |
+| Fruit found (%) | 99.0 | 89.9 | 94.1 |
+| Mean episode length | 11.5 | 20.7 | 17.2 |
+
+*Table 2 - Summary of final results.*
+
+&nbsp;
+
+
 ### Limitations
 There are certainly serious problems that LLM supervision of RL does not address. Modes of reward hacking might emerge which leverage unexpected behaviours of a LLM, akin to those caused by jailbreaking or hallucination. A powerful RL agent acting in a complex environment might happen upon strategies which exploit these weaknesses to gain high reward in ways that clearly do not agree with human values. 
 
@@ -171,10 +200,11 @@ WORLD MODELLING
 
 <span id="lin">[[1]](https://dynalang.github.io/)</span> Lin, J., Du, Y., Watkins, O., Hafner, D., Abbeel, P., Klein, D., & Dragan, A. (2023). *Learning to Model the World with Language.*
 
-<span id="CAI">[[2]](https://arxiv.org/abs/2203.02155)</span> Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C. L., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., Schulman, J., Hilton, J., Kelton, F., Miller, L., Simens, M., Askell, A., Welinder, P., Christiano, P., Leike, J., & Lowe, R. (2022). *Training language models to follow instructions with human feedback.* 
+<span id="InstructGPT">[[2]](https://arxiv.org/abs/2203.02155)</span> Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C. L., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., Schulman, J., Hilton, J., Kelton, F., Miller, L., Simens, M., Askell, A., Welinder, P., Christiano, P., Leike, J., & Lowe, R. (2022). *Training language models to follow instructions with human feedback.* 
  
 <span id="CAI">[[3]](https://arxiv.org/abs/2212.08073)</span> Bai, Y., Kadavath, S., Kundu, S., Askell, A., Kernion, J., Jones, A., Chen, A., Goldie, A., Mirhoseini, A., McKinnon, C., Chen, C., Olsson, C., Olah, C., Hernandez, D., Drain, D., Ganguli, D., Li, D., Tran-Johnson, E., Perez, E., … Kaplan, J. (2022). *Constitutional AI: Harmlessness from AI Feedback.*
 
+<span id="CAI">[[4]](http://jmlr.org/papers/v22/20-1364.html)</span> Raffin, A., Hill, A., Gleave, A., Kanervisto, A., Ernestus, M., & Dormann, N. (2021). *Stable-Baselines3: Reliable Reinforcement Learning Implementations.* Journal of Machine Learning Research, 22(268), 1–8. 
 
 
 ## Appendix
