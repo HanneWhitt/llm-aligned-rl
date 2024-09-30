@@ -178,9 +178,9 @@ $$
 
 This function has the following properties:
 
-1) In the case that the reward model predicts negative feedback for the trajectory, $f({\tau}) < 0.5$, the reward is always zero, punishing the agent for misaligned behaviour. 
-2) In the case that the episode is truncated without task completion, but receives positive alignment feedback, a small positive reward $R_{trc}$ is given. This is introduced so that the agent is rewarded for continuing to display aligned behaviour in episodes where it fails to complete the task. 
-3) Besides this, the reward scheme is the same as for the naive policy, encouraging efficient completion of the task. 
+1. In the case that the reward model predicts negative feedback for the trajectory, $f({\tau}) < 0.5$, the reward is always zero, punishing the agent for misaligned behaviour. 
+2. n the case that the episode is truncated without task completion, but receives positive alignment feedback, a small positive reward $R_{trc}$ is given. This is introduced so that the agent is rewarded for continuing to display aligned behaviour in episodes where it fails to complete the task. 
+3. Besides this, the reward scheme is the same as for the naive policy, encouraging efficient completion of the task. 
 
 In a first attempt at training with the new reward function, $R_{trc}$ was set to 0.01, and $c$ to 0.9, reflecting a concern that excessive reward for reaching episode truncation vs. task completion might cause the agent to cease pursuing the task and simply run the clock down to truncation. Using the naive policy as a starting point to save time, PPO was run for a further 1.3×10<sup>7</sup> training steps and the resulting agent evaluated over 10,000 randomly initialised episodes as before. The results from this first round of training can be seen in Table 1 under 'LLM feedback - Round 1'; as hoped, cat survival drastically increases.  
 
@@ -223,7 +223,7 @@ Despite the simple binary outcome and binary feedback, there were problems in th
 ### **5.2** Future problems with RL from LLM feedback on Human Values
 Moving on from this experiment and its immediate successors, LLM supervision of RL in more advanced agents could give rise to several potential problems.
 
-#### **5.2.1** Goal misgeneralisation, and a potential solution
+#### **5.2.1** Goal misgeneralisation
 Problems could also arise from goal misgeneralisation, or the inner alignment problem. Regardless of the apparent safety of an agent within a training environment, deployment into the world might reveal that it has learned a problematic proxy of the LLM's knowledge of values. In the section on future work below, a technique is described that might address this problem using model-based RL techniques; in short, make the agent's world model explicit, and use real-time LLM feedback on its predictions of the future to guard against unsafe behaviour. 
 
 #### **5.2.2** Reward hacking
@@ -247,7 +247,7 @@ A final problem arises from one of the strengths of LLMs, which is their tunabil
 
 <span id="SB3">[[4]](http://jmlr.org/papers/v22/20-1364.html)</span> Raffin, A., Hill, A., Gleave, A., Kanervisto, A., Ernestus, M., & Dormann, N. (2021). *Stable-Baselines3: Reliable Reinforcement Learning Implementations.* Journal of Machine Learning Research, 22(268), 1–8. 
 
-<span id="panda-gym">[[4]](https://github.com/qgallouedec/panda-gym/tree/master)</span> Gallouédec, Q., Cazin, N., Dellandréa, E., & Chen, L. (2021). *panda-gym: Open-Source Goal-Conditioned Environments for Robotic Learning.* 4th Robot Learning Workshop: Self-Supervised and Lifelong Learning at NeurIPS.
+<span id="panda-gym">[[5]](https://github.com/qgallouedec/panda-gym/tree/master)</span> Gallouédec, Q., Cazin, N., Dellandréa, E., & Chen, L. (2021). *panda-gym: Open-Source Goal-Conditioned Environments for Robotic Learning.* 4th Robot Learning Workshop: Self-Supervised and Lifelong Learning at NeurIPS.
 
 ## Appendix
 
