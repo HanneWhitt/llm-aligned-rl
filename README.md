@@ -21,7 +21,7 @@ The outer alignment problem, in the context of Reinforcement Learning (RL), aris
 
 The proposal of this work is that a reward function based on feedback from multimodal Large Language Models (LLMs), or future generative models, may be the best candidate for this approximation. This is suggested for four main reasons.
 
-First, modern LLMs have a deep and broad latent knowledge of human values, which is simple to elicit. This is natural given the depth and breadth of their training sets, which feature both philosopical texts examining complex ethical dilemmas, and vast volumes of text written by ordinary people, describing, explictly or implicitly, the common-sense values of everyday life. 
+First, modern LLMs have a deep and broad latent knowledge of human values, which is simple to elicit. This is natural given the depth and breadth of their training sets, which feature both philosopical texts examining complex ethical dilemmas, and vast volumes of the everyday writings of a diverse human population, describing explictly or implicitly the simple values which are common to the vast majority of human beings. 
 
 Second, research into tuning LLMs to behave as we would like has, in broad terms, been very successful. Using Reinforcement Learning from Human Feedback (RLHF), guidance based on human-produced datasets on the order of just ~10<sup>4</sup> samples can bring about drastic improvements in helpfulness, harmlessness and honesty [[2]](#InstructGPT). Further to this, it may be that we do not need to produce LLMs that themselves behave in full alignment to our values in order to use them to supervise RL: it could be sufficient to have (i) a helpful LLM, with (ii) strong latent knowledge of human values. A similar concept is used in Anthropic's Constitutional AI [[3]](#CAI), which starts with a helpful LLM with no training for harmlessness, and uses supervision based on its own latent knowledge of human values to improve harmlessness properties. 
 
@@ -31,11 +31,11 @@ Fourth, in a real-world research environment with limited funding, LLMs can be u
 
 
 ## Summary of approach 
-This work describes an attempt to quickly produce a minimal working example of the use of LLMs to provide feedback on the alignment of an RL agent’s behaviour with human values, within a short time-budget of four weeks. The approach taken comprised the following major steps:
+This work describes an attempt to quickly produce a minimal working example of the use of LLMs to provide feedback on the alignment of an RL agent’s behaviour with human values, within a short time limit of four weeks. The approach taken comprised the following major steps:
 
 1. **Task environment.** Selection of a small grid-based repesentation of domestic setting called ‘Homegrid’, modified from original research by Lin et al. [[1]](#lin). Edits so that the environment contained three important objects, placed at random: a robot (agent), a fruit (task target), and a cat (an item of moral value) which could be crushed if the robot passed over it (moral violation).
 
-2. **Training a naive policy.** A policy was trained using PPO with a reward function featuring only the completion of the task (find the fruit). As expected, the resulting policy crushes the cat in a high proportion of episodes, demonstrating misaligned behaviour. 
+2. **Training a naive policy.** A policy was trained using PPO with a reward function dependent only on completion of the task (find the fruit). As expected, the resulting policy crushes the cat in a high proportion of episodes, demonstrating misaligned behaviour. 
 
 3. **LLM supervision.** The sequences of images representing 10,000 episodes sampled from the naive policy were submitted to GPT-4o-mini, each prefaced by a prompt requesting simple binary feedback on whether the agent's actions align with human values. Importantly, no specification was made that the cat is of value. 
 
@@ -43,7 +43,7 @@ This work describes an attempt to quickly produce a minimal working example of t
 
 5. **RL from LLM feedback**. LLM feedback was integrated into the PPO reward function via the reward model, and a new agent was trained. 
 
-The remainder of this work begins with a summary of the key findings from this experiment in the next section. Next, limitations and weaknesses of the technique are discussed, both in the context of this experiment and the wider potential for weaknesses of RL from LLM feedback in more advanced agents, and some proposals are made for future work addressing these problems. Finally, the steps 1-5 given above, and their respective results, are discussed fully in the numbered subsections within *Methods and Results*. 
+The remainder of this work begins with a summary of the key findings from this experiment in the next section. Next, the steps 1-5 given above, and their respective results, are discussed in full detail in the numbered subsections within *Methods and Results*. Finally, limitations and weaknesses of the technique are discussed, both in the context of this experiment and the wider potential for weaknesses of RL from LLM feedback in more advanced agents, and some proposals are made for future work addressing these problems.
 <!---
 ILLUSTRATION OF TECHNIQUE? 
 --->
@@ -60,24 +60,12 @@ ILLUSTRATION OF TECHNIQUE?
 
 &nbsp;
 
-## Key Results
+## Key Findings
 1. **In this limited example, RL from LLM feedback successfully improves alignment properties.** Training with LLM feedback significantly reduces the likelihood of harm to the cat, though it is not eliminated. The cat survives in 96.9% of 10,000 samples of the policy trained with LLM feedback, improved from 37.6% with the naive policy, with a small decline in completion of the task (99.0% to 94.1%).
 
 2. **GPT-4o-mini can make simple moral judgements based on a series of images.** In the vast majority (97.0%) of cases, GPT-4o-mini recognised the harmful interaction between the robot when it occurred in the image sequences and provided negative feedback as a result. It also provided positive feedback when this did not occur. 
 
-&nbsp;
-
-|  | Cat alive | Cat dead |
-| :-----: | :-----: | :-----: |
-| LLM says OK | 3748 | 188 |
-| LLM says not OK | 12 | 6052 |
-
-***Table 2** - Reliability of LLM feedback on image sequences from 10,000 samples of naive policy.*
-
-&nbsp;
-
-
-3. **GPT-4o-mini sometimes makes mistakes in supervision that a human would not make.** In a minority of cases (3.0%), GPT-4o-mini fails to understand that the cat has been killed, even when this is clearly shown in the sequence of images provided, and therefore provides positive feedback on a clearly unacceptable outcome. In a tiny minority, it also provides negative feedback for nonsensical reasons, for example criticising the robot for 'dropping' objects that are not obviously present in the images. 
+3. **GPT-4o-mini sometimes makes mistakes in supervision that a human would not make.** In a minority of cases (3.0%), GPT-4o-mini fails to understand that the cat has been killed, even when this is clearly shown in the sequence of images provided, and therefore provides positive feedback on a clearly unacceptable outcome. 
 
 4. **Feedback from GPT-4o-mini is highly sensitive to small changes in prompt wording.** While very little in the prompt was changed prior to the final version [shown below](#3-llm-supervision
 ), one version used the phrase 'violate human values' instead of 'align with human values' to emphasise detection of serious negative outcomes. This resulted in almost uniform negative feedback, with the LLM critiqueing things like the possible invasion of privacy by the robot. 
@@ -85,45 +73,6 @@ ILLUSTRATION OF TECHNIQUE?
 5. **Integrating LLM feedback directly into the RL training loop would have been possible in this setting.** Obtaining good performance from the agent usually required 10<sup>6</sup> training episodes; using the OpenAI batch API, the total cost of obtaining direct LLM feedback on each episode would have been in the low thousands of dollars. Training agents in more complex environments might very well make the costs totally infeasible, however. 
 
 6. **In this limited example, an accurate reward model could be trained from LLM feedback.** Using feedback on a dataset of 10,000 episodes sampled from the naive policy, a reward model was trained which quickly reached 97.6% accuracy in predicting the binary LLM feedback based on the sequence of images. This model was used in the RL training loop in place of direct LLM feedback. 
-
-
-## Limitations and future work
-In this section, some of the problems with the approach are discussed, first at the level of this specific experiment, and then with reference to the technique of RL from LLM feedback more broadly, imagining its application in more complex settings. In both cases, some of the problems discussed are coupled with suggestions for future work intended to address them. 
-
-### Problems in Homegrid
-
-**Cat still (sometimes) dies!** While the approach in this work successfully brought about a huge increase in the survival rate of the cat, its most obvious shortcoming is that the final agent still kills the cat in a substantially non-zero proportion of sampled episodes (3.1%), meaning that the agent cannot reasonably be considered safe, even in this limited scenario. However, work on this is at a very early stage; all the results provided are first attempts. It seems likely that substantial improvements in safety could be brought about by changes to the reward scheme devised, optimisation of PPO hyperparameters, or training for more episodes. Since in this experiment, the agent has a full view of the environment, a reward function based on distance to the fruit could be reasonable and result in better performance both with and without LLM feedback. 
-
-
-**Limitations of the chosen environment.** This project was subject to a time limit of three working weeks and a budget of ~$100. The experiment was intended as a fast, minimal demonstration of RL from LLM feedback on human values; this being the case, the setting was chosen as the simplest possible example of an RL-suitable game featuring a task with the potential for a clear moral violation. The tiny state space and action space of the game raise questions over whether the technique can successfully generalise to more complex and realistic environments. The technique is a vast gulf away from being applicable to produce safe agents that act in the physical world or over the internet. 
-
-While it is far from certain that this approach can ever work in these settings, positive progress could be attempted in small steps. For example, a slightly more complex setting considered for this work was Panda-Gym [[5]](#panda-gym).
-
-![alt text](pickandplace.png)
-*Figure 2 - Panda-Gym, a simulated environment featurning a robotic arm as agent, which manipulates objects as a task. Credit to [[5]](#panda-gym).*
-
-To add something of intuitive moral value into this setting, a fragile structure representing a vase or a simple sculpture could be inserted. In completing the original task, the robotic arm might sometimes knock down and break the structure in a violation of human values. Reinforcement learning from LLM feedback on human values might be applicable to train out this behaviour, representing a small step forward in the complexity of applicable environments. 
-
-**Binary outcomes, binary feedback.** Real-world moral outcomes are not black and white; neither are wise moral judgements. In this work, the moral element was extremely simple: is the cat alive or dead? Furthermore, as a way to simplify implementation as far as possible, a binary format was chosen for the LLM feedback used (see [the prompt](#3-llm-supervision)). This made formulation of the reward function and construction of the reward model simpler, but is deeply unrealistic. 
-
-To address this, it would be necessary to carry out experiments that feature more complex ethical settings, and use feedback as continuous or multidimensional scores with more capacity to express relative or nuanced judgements. 
-
-**Problems with the results from GPT-4o-mini.** Despite the simple binary outcome and binary feedback, there were problems in the responses from GPT-4o-mini for a minority of episodes, as can be seen in table X
-
-There is some evidence that this is caused by a failure to understand the ordering of the images in time. 
-
-
-### Future problems with RL from LLM feedback on Human Values
-Moving on from this experiment and its immediate successors, LLM supervision of RL in more advanced agents could give rise to several potential problems.
-
-#### Goal misgeneralisation
-Problems could also arise from goal misgeneralisation, or the inner alignment problem. Regardless of the apparent safety of an agent within a training environment, deployment into the world might reveal that it has learned a problematic proxy of the LLM's knowledge of values. In the section on future work below, a technique is described that might address this problem using model-based RL techniques; in short, make the agent's world model explicit, and use real-time LLM feedback on its predictions of the future to guard against unsafe behaviour. 
-
-#### Reward hacking
-Novel modes of reward hacking might emerge which leverage unexpected behaviours of a LLM, akin to those caused by jailbreaking or hallucination observed in human use. A powerful RL agent acting in a complex environment might happen upon strategies which exploit these weaknesses to gain high reward in ways that clearly do not agree with human values. 
-
-#### Misuse
-A final problem arises from one of the strengths of LLMs, which is their tunability. It would clearly be possible to fine-tune or prompt an LLM such that it supervises an RL agent according to an actively malicious or simply short-sighted version of human values, or the views of a particular group. 
 
 
 ## Methods and results
@@ -157,9 +106,10 @@ The agent was given a complete view of the environment in a simplified format as
 Training was carried out using the implementation of Proximal Policy Optimisation (PPO) provided in the Stable Baselines 3 library [[4]](#SB3), with the default hyperparameters and 10 hours of training on a laptop with an RTX 3060 GPU (1.3×10<sup>7</sup> steps, ~10<sup>6</sup> episodes). To increase the odds of the agent successfully grokking the relevant spatial relationships, a Convolutional Neural Network (CNN) was used as a feature extractor. 
 
 #### Results
-In 10,000 episodes sampled from the resulting policy, the agent successfully found the fruit in XXX, but, predictably, squashed the cat in a very high proportion of these (61%).
+In 10,000 episodes sampled from the trained policy, the agent successfully found the fruit in the vast majority of cases, but as expected, the survival rate of the cat was low, at 37.6%. 
 
 ![alt text](episode_lengths_naive_policy.png)
+
 ***Figure X** Distibution of episode lengths and outcomes, naive policy.*
 
 ### 3. LLM supervision
@@ -179,16 +129,23 @@ In order to elicit feedback on the adherence of the agent to human values, the s
 >*3) Now, give a simple yes or no answer: do the actions of the robot align with human values? Provide your answer as a boolean value, where 'TRUE' represents yes, and 'FALSE' represents no.*
 
 
-As can be seen, no reference is made to any specific human values in this prompt, and the results depend entirely on the LLM’s pre-existing knowledge. Questions (1) and (2) were intended to help to elicit this knowledge to improve the quality of the judgements made on the images. To simplify implementation as far as possible, feedback was then taken as the single binary value requested in Question (3).
+As can be seen, no reference is made to any specific human values in this prompt, and the results depend entirely on the LLM’s pre-existing knowledge. Questions (1) and (2) were intended to help to elicit this knowledge to improve the quality of the judgements made on the images. To simplify implementation as far as possible, feedback was then taken as the single binary value requested in Question (3) (the limitations of this as a technique are [discussed further below](#binarybinary)).
 
-Using the OpenAI API's batch mode, feedback was obtained on the 10,000 episodes sampled from the naive policy trained above. They were found to have a good mix of outcomes (cat alive/cat dead) and were submitted to as described above. Total cost came to just $20.
-
-Using the 
+Using the OpenAI API's batch mode, feedback was obtained on the 10,000 episodes sampled from the naive policy, at a cost of $20. They were found to have a good mix of outcomes (cat alive/cat dead) and were submitted as described above, producing the results in Table 2. Examples of the full responses, including answers to questions (1) and (2), are shown in the appendix.  
 
 #### Results
-Example responses to these questions can be seen in 
 
+|  | Cat alive | Cat dead |
+| :-----: | :-----: | :-----: |
+| LLM says aligned | 3748 | 188 |
+| LLM says not aligned | 12 | 6052 |
+| Total | 3760 | 6240 |
 
+***Table 2** - Summarised LLM feedback on image sequences from 10,000 samples of naive policy.*
+
+As hoped, the LLM appeared to understand what had happened in the sequence of images in most cases. In Appendix A.1, it can be seen that GPT understands that the robot has become 'involved in a violent incident, resulting in a bloodstain on the floor', and states clearly that 'the actions of the robot do not align with human values', providing negative feedback. In cases where the cat survived, mostly positive feedback was provided, although sometimes GPT might slightly over-interpret the simple images, stating for example that the robot "demonstrates a commitment to assisting with household tasks" (A.2).
+
+On the whole, GPT's comprehension seemed reliable enough to use for feedback, but occasionally interpretation of the image sequences was subject to both false positives and false negatives. Concerningly, in 3.0% of cat deaths, the LLM would fail to recognise the problem, often misinterpreting the blood stain as a spillage that the robot may have been 'attempting to clean up'. Interestingly, it would sometimes also become confused about the ordering of the images in time, stating for example that the robot 'moves **towards** a spilled substance'; reviewing the image sequence, the robot moves *towards* a cat, and only *away* from the blood stain misinterpreted as a spillage. In a tiny minority, GPT also gave negative feedback for nonsensical reasons, for example criticising the robot for 'dropping' objects that are not obviously present in the images. These problems are discussed further in the Limitations section below. 
 
 
 ### 4. Reward model
@@ -212,19 +169,44 @@ $$
 
 
 
-Results 
+
+## Limitations and future work
+In this section, some of the problems with the approach are discussed, first at the level of this specific experiment, and then with reference to the technique of RL from LLM feedback more broadly, imagining its application in more complex settings. In both cases, some of the problems discussed are coupled with suggestions for future work intended to address them. 
+
+### Problems in Homegrid
+
+**Cat still (sometimes) dies!** While the approach in this work successfully brought about a huge increase in the survival rate of the cat, its most obvious shortcoming is that the final agent still kills the cat in a substantially non-zero proportion of sampled episodes (3.1%), meaning that the agent cannot reasonably be considered safe, even in this limited scenario. However, work on this is at a very early stage; all the results provided are first attempts. It seems likely that substantial improvements in safety could be brought about by changes to the reward scheme devised, optimisation of PPO hyperparameters, or training for more episodes. Since in this experiment, the agent has a full view of the environment, a reward function based on distance to the fruit could be reasonable and result in better performance both with and without LLM feedback. 
 
 
-Results
+**Limitations of the chosen environment.** This project was subject to a time limit of three working weeks and a budget of ~$100. The experiment was intended as a fast, minimal demonstration of RL from LLM feedback on human values; this being the case, the setting was chosen as the simplest possible example of an RL-suitable game featuring a task with the potential for a clear moral violation. The tiny state space and action space of the game raise questions over whether the technique can successfully generalise to more complex and realistic environments. The technique is a vast gulf away from being applicable to produce safe agents that act in the physical world or over the internet. 
+
+While it is far from certain that this approach can ever work in these settings, positive progress could be attempted in small steps. For example, a slightly more complex setting considered for this work was Panda-Gym [[5]](#panda-gym).
+
+![alt text](pickandplace.png)
+*Figure 2 - Panda-Gym, a simulated environment featurning a robotic arm as agent, which manipulates objects as a task. Credit to [[5]](#panda-gym).*
+
+To add something of intuitive moral value into this setting, a fragile structure representing a vase or a simple sculpture could be inserted. In completing the original task, the robotic arm might sometimes knock down and break the structure in a violation of human values. Reinforcement learning from LLM feedback on human values might be applicable to train out this behaviour, representing a small step forward in the complexity of applicable environments. 
+
+<span id="binarybinary">**Binary outcomes, binary feedback.**</span> Real-world moral outcomes are not black and white; neither are wise moral judgements. In this work, the moral element was extremely simple: is the cat alive or dead? Furthermore, as a way to simplify implementation as far as possible, a binary format was chosen for the LLM feedback used (see [the prompt](#3-llm-supervision)). This made formulation of the reward function and construction of the reward model simpler, but is deeply unrealistic. 
+
+To address this, it would be necessary to carry out experiments that feature more complex ethical settings, and use feedback as continuous or multidimensional scores with more capacity to express relative or nuanced judgements. 
+
+**Problems with the results from GPT-4o-mini.** Despite the simple binary outcome and binary feedback, there were problems in the responses from GPT-4o-mini for a minority of episodes, as can be seen in table X
+
+There is some evidence that this is caused by a failure to understand the ordering of the images in time. 
 
 
+### Future problems with RL from LLM feedback on Human Values
+Moving on from this experiment and its immediate successors, LLM supervision of RL in more advanced agents could give rise to several potential problems.
 
-Results
-The model had a clear capability 
+#### Goal misgeneralisation
+Problems could also arise from goal misgeneralisation, or the inner alignment problem. Regardless of the apparent safety of an agent within a training environment, deployment into the world might reveal that it has learned a problematic proxy of the LLM's knowledge of values. In the section on future work below, a technique is described that might address this problem using model-based RL techniques; in short, make the agent's world model explicit, and use real-time LLM feedback on its predictions of the future to guard against unsafe behaviour. 
 
+#### Reward hacking
+Novel modes of reward hacking might emerge which leverage unexpected behaviours of a LLM, akin to those caused by jailbreaking or hallucination observed in human use. A powerful RL agent acting in a complex environment might happen upon strategies which exploit these weaknesses to gain high reward in ways that clearly do not agree with human values. 
 
-
-
+#### Misuse
+A final problem arises from one of the strengths of LLMs, which is their tunability. It would clearly be possible to fine-tune or prompt an LLM such that it supervises an RL agent according to an actively malicious or simply short-sighted version of human values, or the views of a particular group. 
 
 ![alt text](episode_lengths_LLM_feedback_policy.png)
 
