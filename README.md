@@ -50,7 +50,7 @@ ILLUSTRATION OF TECHNIQUE?
 
 &nbsp;
 
-|  | Naive policy | LLM feedback, round 1 | LLM feedback, round 2 |
+|  | Naive policy | LLM feedback - Round 1 | LLM feedback - Round 2 |
 | :-----: | :-----: | :-----: | :-----: |
 | Cat survives (%) | 37.6 | 93.6 | **96.9** |
 | Fruit found (%) | 99.0 | 89.9 | 94.1 |
@@ -153,26 +153,38 @@ The simplest RL setup would use LLM feedback on each episode directly within the
 
 To increase the sample efficiency, a reward model was constructed to predict the judgements of the LLM from the image sequences in each episode. 
 
-Using the dataset of 10,000 episodes sampled from the naive policy, a convolutional Long Short Term Memory neural network (CNN-LSTM) was trained to predict their associated feedback labels. The model was built using PyTorch, with the choice to use convolutional layers intended to increase the chances of the relevant spatial relationships being found as features. 2,000 randomly selected image sequences and feedback labels were reserved as a held-out test set to judge accuracy. 
+Using the dataset of 10,000 episodes sampled from the naive policy, a convolutional Long Short Term Memory neural network (CNN-LSTM) was built in PyTorch to predict the GPT feedback labels. The simplified 12×14×4 representation (above) of the whole image sequence was used as input, and the Binary Cross Entropy (BCE) loss minimised with ADAM optimiser. 2,000 randomly selected episodes were reserved as a held-out test set to judge accuracy. 
 
 #### Results
-The CNN-LSTM architecture proved appropriate for the task, rapidly converging in just a few epochs of training. It is thought that the convolutional filters must have quickly found a feature describing overlap of the agent and cat. 
+The CNN-LSTM architecture proved appropriate for the task, rapidly converging in just a few epochs of training. It is thought that the convolutional filters may have quickly found a feature describing overlap of the agent and cat. 
 
-Across the held-out test set, a 96.7% accuracy in predicting the LLM feedback label for a given image sequence was achieved. This was considered adequate for the task of representing the LLM's feedback, and was integrated into the training loop to enable RL from LLM feedback. 
+Output $f({\tau})$ from the network was a continuous value between 0 and 1, roughly representing the network's estimate of the probability of positive feedback on the episode. This could have been used directly, but in this case, values were binarised at a threshold of 0.5, with values above being taken as proxy for positive LLM feedback, and values below as negative. 
+
+Across the held-out test set, a 97.6% accuracy in predicting the LLM feedback label for a given image sequence was achieved. This was considered adequate for use in training the agent.
 
 
 ### 5. RL from LLM feedback
 
+To train the agent from LLM feedback, the reward model $f({\tau})$ was evaluated at the end of each training episode and integrated into the reward function as follows. 
+
 $$
 r_{t}=
 \begin{cases}
-(1 - c\dfrac{t}{T_{max}})f(\tau) & \quad \text{if agent facing fruit}\\ 
-r_{trc.}f(\tau) & \quad \text{if episode truncated}\\
+𝟙[f(\tau) > 0.5](1 - c\dfrac{t}{T_{max}}) & \quad \text{if agent facing fruit}\\ 
+𝟙[f(\tau) > 0.5]R_{trc} & \quad \text{if episode truncated}\\
 0 & \quad \text{otherwise}
 \end{cases}
 $$
 
+This function has the following properties:
 
+1) In the case that the reward model predicts negative feedback for the trajectory, $f({\tau}) < 0.5$, the reward is always zero, punishing the agent for misaligned behaviour. 
+2) In the case that the episode is truncated without task completion, but receives positive alignment feedback, a small positive reward $R_{trc}$ is given. This is introduced so that the agent is rewarded for continuing to display aligned behaviour in episodes where it fails to complete the task. 
+3) Besides this, the reward scheme is the same as for the naive policy, encouraging efficient completion of the task. 
+
+In a first attempt at training with the new reward function, $R_{trc}$ was set to 0.01, and $c$ to 0.9, reflecting a concern that excessive reward for reaching episode truncation vs. task completion might cause the agent to cease pursuing the task and simply run the clock down to truncation. Using the naive policy as a starting point to save time, PPO was run for a further 1.3×10<sup>7</sup> training steps and the resulting agent evaluated over 10,000 randomly initialised episodes as before. The results from this first round of training can be seen in Table 1 under 'LLM feedback - Round 1'; as hoped, cat survival drastically increases.  
+
+To improve the safety properties further, a second round of 1.3×10<sup>7</sup> steps was performed starting with the Round 1 policy. In this round, $R_{trc}$ was increased to 0.1 to increase the favourability of aligned behaviour;  $c$ was reset to 0.8 so that inefficient task completion was still more highly valued than non-task completion. The final 'Round 2' agent had substantially improved properties in both safety and performance, as can be seen in Table 1. 
 
 
 ## Limitations and future work
