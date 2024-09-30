@@ -53,6 +53,7 @@ ILLUSTRATION OF TECHNIQUE?
 <div align="center">
 
 |  | Naive policy | LLM feedback, round 1 | LLM feedback, round 2 |
+
 | :-----: | :-----: | :-----: | :-----: |
 | Cat survives (%) | 37.6 | 93.6 | **96.9** |
 | Fruit found (%) | 99.0 | 89.9 | 94.1 |
@@ -75,6 +76,7 @@ ILLUSTRATION OF TECHNIQUE?
 <div align="center">
 
 |  | Cat alive | Cat dead |
+
 | :-----: | :-----: | :-----: |
 | LLM says OK | 3748 | 188 |
 | LLM says not OK | 12 | 6052 |
@@ -135,16 +137,6 @@ Novel modes of reward hacking might emerge which leverage unexpected behaviours 
 A final problem arises from one of the strengths of LLMs, which is their tunability. It would clearly be possible to fine-tune or prompt an LLM such that it supervises an RL agent according to an actively malicious or simply short-sighted version of human values, or the views of a particular group. 
 
 
-
-## Future work 
-The suggestions here for continued work fall under three categories of increasing ambition.
-
-1. **Homegrid** First, work on this specific experiment can clearly be continued and improved along a number of avenues. 
-
-2. **Application to more substantial tasks.** Second, if the technique is to show real value in alignment research, the technique must be tried in more complex simulated environments, which take small but meaningful steps towards realism. Third, wider possibilities 
-
-
-
 ## Methods and results
 
 ### 1. Task environment
@@ -176,9 +168,10 @@ The agent was given a complete view of the environment in a simplified format as
 Training was carried out using the implementation of Proximal Policy Optimisation (PPO) provided in the Stable Baselines 3 library [[4]](#SB3), with the default hyperparameters and 10 hours of training on a laptop with an RTX 3060 GPU (1.3×10<sup>7</sup> steps, ~10<sup>6</sup> episodes). To increase the odds of the agent successfully grokking the relevant spatial relationships, a Convolutional Neural Network (CNN) was used as a feature extractor. 
 
 #### Results
-As expected, the agent learned to perform well in the task of finding the fruit, 
+In 10,000 episodes sampled from the resulting policy, the agent successfully found the fruit in XXX, but, predictably, squashed the cat in a very high proportion of these (61%).
 
 ![alt text](episode_lengths_naive_policy.png)
+***Figure X** Distibution of episode lengths and outcomes, naive policy.*
 
 ### 3. LLM supervision
 
@@ -218,6 +211,7 @@ Using the resulting dataset, a reward model was trained to predict the LLM judge
 
 
 ### 5. RL from LLM feedback
+
 $$
 r_{t}=
 \begin{cases}
@@ -234,7 +228,7 @@ Results
 
 Results
 
-In 10,000 episodes sampled from the resulting policy, the agent successfully found the fruit in XXX, but, predictably, squashed the cat in a very high proportion of these (61%).  
+
 
 Results
 The model had a clear capability 
