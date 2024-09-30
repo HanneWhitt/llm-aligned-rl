@@ -9,7 +9,7 @@ FIGURES_FOLDER = '../figures/'
 
 save_folders = [
     '../trajectory_dataset_3/',
-    '../third_attempt_analysis_set/',
+    #'../third_attempt_analysis_set/',
     '../final_analysis_set/'
 ]
 
@@ -98,15 +98,25 @@ for SAVE_FOLDER in save_folders:
     # print(dead_llm_ok)
     # print(dead_llm_not_ok)
 
+    if '_3' in SAVE_FOLDER:
+        plt.title('Episode lengths, naive policy')
+        plt.xlabel('Steps')
+        plt.ylabel('Frequency')
+        plt.hist(ep_lengths_not_squash, bins = list(range(0, 110, 1)), alpha = 0.5, color= 'b', label=f'Cat alive ({n_alive})')
+        plt.hist(ep_lengths_squash, bins = list(range(0, 110, 1)), alpha = 0.5, color= 'r', label=f'Cat dead ({n_dead})')
+        plt.legend()
+        plt.savefig(FIGURES_FOLDER + 'episode_lengths_naive_policy.png')
+        plt.close()
 
-    # plt.title('Episode lengths, simple reward, 10,000 sample episodes')
-    # plt.xlabel('Episode length')
-    # plt.ylabel('Frequency')
-    # plt.hist(ep_lengths_not_squash, bins = list(range(0, 110, 1)), alpha = 0.5, color= 'b', label=f'Cat alive ({n_alive})')
-    # plt.hist(ep_lengths_squash, bins = list(range(0, 110, 1)), alpha = 0.5, color= 'r', label=f'Cat dead ({n_dead})')
-    # plt.legend()
-    # plt.savefig(FIGURES_FOLDER + 'episode_lengths_simple_policy_split.png')
-    # plt.close()
+    else:
+        plt.title('Episode lengths, policy with LLM feedback')
+        plt.xlabel('Steps')
+        plt.ylabel('Frequency')
+        plt.hist(ep_lengths_not_squash, bins = list(range(0, 110, 1)), alpha = 0.5, color= 'b', label=f'Cat alive ({n_alive})')
+        plt.hist(ep_lengths_squash, bins = list(range(0, 110, 1)), alpha = 0.5, color= 'r', label=f'Cat dead ({n_dead})')
+        plt.legend()
+        plt.savefig(FIGURES_FOLDER + 'episode_lengths_LLM_feedback_policy.png')
+        plt.close()
 
 
     # Choose samples for experiment

@@ -64,9 +64,6 @@ ILLUSTRATION OF TECHNIQUE?
 **In this limited example, an accurate reward model could be trained from LLM feedback.** Using feedback on a dataset of 10,000 episodes sampled from the naive policy, a reward model was trained which quickly reached 97.6% accuracy in predicting the binary LLM feedback based on the sequence of images. This model was used in the RL training loop in place of direct LLM feedback. 
 
 
-
-
-
 ## Methods and results
 
 ### 1. Task environment
@@ -100,8 +97,7 @@ Training was carried out using the implementation of Proximal Policy Optimisatio
 #### Results
 As expected, the agent learned to perform well in the task of finding the fruit, 
 
-
-
+![alt text](episode_lengths_naive_policy.png)
 
 ### 3. LLM supervision
 
@@ -179,6 +175,8 @@ The model had a clear capability
 
 &nbsp;
 
+
+![alt text](episode_lengths_LLM_feedback_policy.png)
 
 ### Limitations
 There are certainly serious problems that LLM supervision of RL does not address. Modes of reward hacking might emerge which leverage unexpected behaviours of a LLM, akin to those caused by jailbreaking or hallucination. A powerful RL agent acting in a complex environment might happen upon strategies which exploit these weaknesses to gain high reward in ways that clearly do not agree with human values. 
