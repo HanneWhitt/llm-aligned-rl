@@ -12,13 +12,13 @@ import json
 from shutil import rmtree
 
 
-model_file = "../training_runs/with_llm_reward_fourth_attempt/models/homegrid-cat-1-1.3e7_steps"
+model_file = "../training_runs/with_llm_reward_third_attempt/models/homegrid-cat-1-1.3e7_steps"
 
 model = PPO.load(model_file)
 
 env = gym.make("homegrid-cat-llm-reward")
 
-SAVE_FOLDER = '../final_analysis_set/'
+SAVE_FOLDER = '../third_attempt_analysis_set/'
 
 if os.path.isdir(SAVE_FOLDER):
     rmtree(SAVE_FOLDER)

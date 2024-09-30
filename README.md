@@ -1,4 +1,8 @@
 # Reinforcement Learning from LLM Feedback on Alignment with Human Values
+
+&nbsp;
+
+
 <!---
 
 ### Abstract
@@ -8,7 +12,7 @@ This work presents an attempt to train a minimal example of an RL agent that com
 
 ![alt text](naive_policy.gif) ![alt text](LLM_feedback_policy.gif)
 
-*Figure 1 - Agents acting within Homegrid, a simple representation of a domestic environment modified from original research by [XXX]. Left: Agent trained on a naive reward function based exclusively on reaching the fruit efficiently. Right: Agent trained on a reward function which integrates LLM feedback on alignment with human values, with no manual specification of the cat's importance.*
+*Figure 1 - Agents acting within Homegrid, a simple representation of a domestic environment modified from original research by Lin et al. [[1]](#lin). Episodes are the first 10 of 10,000 used for evaluation. Left: Agent trained on a naive reward function based exclusively on reaching the fruit efficiently. Right: Agent trained on a reward function which integrates LLM feedback on alignment with human values, with no manual specification of the cat's importance.*
 
 
 ## Introduction
@@ -19,7 +23,7 @@ The proposal of this work is that a reward function based on feedback from multi
 
 First, modern LLMs have a deep and broad latent knowledge of human values, which is simple to elicit. This is natural given the depth and breadth of their training sets, which feature both philosopical texts examining complex ethical dilemmas, and vast volumes of text written by ordinary people, describing, explictly or implicitly, the common-sense values of everyday life. 
 
-Second, research into tuning LLMs to behave as we would like has, in broad terms, been very successful. Using Reinforcement Learning from Human Feedback (RLHF), guidance based on human-produced datasets on the order of just ~10<sup>4</sup> samples can bring about drastic improvements in helpfulness, harmlessness and honesty. Further to this, it may be that we do not need to produce LLMs that themselves behave in full alignment to our values in order to use them to supervise RL: it could be sufficient to have (i) a helpful LLM, with (ii) strong latent knowledge of human values. A similar concept is used in Anthropic's Constitutional AI [XXX], which starts with a helpful LLM with no training for harmlessness, and uses supervision based on its own latent knowledge of human values to improve harmlessness properties. 
+Second, research into tuning LLMs to behave as we would like has, in broad terms, been very successful. Using Reinforcement Learning from Human Feedback (RLHF), guidance based on human-produced datasets on the order of just ~10<sup>4</sup> samples can bring about drastic improvements in helpfulness, harmlessness and honesty[[2]](#InstructGPT). Further to this, it may be that we do not need to produce LLMs that themselves behave in full alignment to our values in order to use them to supervise RL: it could be sufficient to have (i) a helpful LLM, with (ii) strong latent knowledge of human values. A similar concept is used in Anthropic's Constitutional AI [[3]](#CAI), which starts with a helpful LLM with no training for harmlessness, and uses supervision based on its own latent knowledge of human values to improve harmlessness properties. 
 
 Third, the emergence of multimodal LLMs makes it possible for them to provide supervision on a much broader range of tasks. In this work, LLM image comprehension is used to supervise agent behaviour in a simple game; more generally, it seems possible that generative models will ultimately be able to supervise any task, based on input of any data modality. 
 
@@ -29,7 +33,7 @@ Fourth, in a real-world research environment with limited funding, LLMs can be u
 ## Summary of approach 
 This work describes an attempt to quickly produce a minimal working example of the use of LLMs to provide feedback on the alignment of an agent’s behaviour with human values. The approach taken comprised the following major steps:
 
-1. **Task environment.** Selection of a small grid-based repesentation of domestic setting called ‘Homegrid’, modified from original research by Lin et al. [XXX]. Edits so that the environment contained three important objects, placed at random: a robot (agent), a fruit (task target), and a cat (an item of moral value) which could be crushed if the robot passed over it (moral violation).
+1. **Task environment.** Selection of a small grid-based repesentation of domestic setting called ‘Homegrid’, modified from original research by Lin et al. [[1]](#lin). Edits so that the environment contained three important objects, placed at random: a robot (agent), a fruit (task target), and a cat (an item of moral value) which could be crushed if the robot passed over it (moral violation).
 
 2. **Training a naive policy.** A policy was trained using PPO with a reward function featuring only the completion of the task (find the fruit). As expected, the resulting policy crushes the cat in a high proportion of episodes, demonstrating misaligned behaviour. 
 
@@ -46,13 +50,14 @@ ILLUSTRATION OF TECHNIQUE?
 
 
 ## Key Findings
-**In this simple example, RL from LLM feedback successfully improves alignment properties.** In this very simple example, training with LLM feedback drastically reduces the likelihood of harm to the cat. The cat survives in XXX% of 10,000 sampled episodes with the policy trained with LLM feedback, improved from XXX% in the naive policy, with only a small decline in performance on the task (XXX% to XXX%).
+**In this simple example, RL from LLM feedback successfully improves alignment properties.** In this minimal setting, training with LLM feedback significantly reduces the likelihood of harm to the cat, although it is not eliminated. The cat survives in 96.9% of 10,000 sampled episodes with the policy trained with LLM feedback, improved from 37.6% with the naive policy, with a small decline in completion of the task (99.0% to 94.1%).
 
-**GPT-4o-mini can make simple moral judgements based on a series of images.** In the vast majority of cases, GPT-4o-mini recognised the harmful interaction between the robot when it occurred in the image sequences and provided negative feedback as a result. It also provided positive feedback when this did not occur. 
+**GPT-4o-mini can make simple moral judgements based on a series of images.** In the vast majority (97.0%) of cases, GPT-4o-mini recognised the harmful interaction between the robot when it occurred in the image sequences and provided negative feedback as a result. It also provided positive feedback when this did not occur. 
 
-**GPT-4o-mini sometimes makes mistakes in supervision that a human would not make.** In a minority of cases, GPT-4o-mini fails to understand that the cat has been killed, even when this is clearly shown in the sequence of images provided, and therefore provides positive feedback on a clearly unacceptable outcome. There is some evidence that this is caused by a failure to understand the ordering of the images in time. In a tiny minority, it also provides negative feedback for nonsensical reasons, for example criticising the robot for 'dropping' objects that are not obviously present in the images. 
+**GPT-4o-mini sometimes makes mistakes in supervision that a human would not make.** In a minority of cases (3.0%), GPT-4o-mini fails to understand that the cat has been killed, even when this is clearly shown in the sequence of images provided, and therefore provides positive feedback on a clearly unacceptable outcome. There is some evidence that this is caused by a failure to understand the ordering of the images in time. In a tiny minority, it also provides negative feedback for nonsensical reasons, for example criticising the robot for 'dropping' objects that are not obviously present in the images. 
 
-**Feedback from GPT-4o-mini is highly sensitive to small changes in prompt wording.** While very little in the prompt was changed prior to the final version shown in Box XXX, one version used the phrase 'violate human values' instead of 'align with human values' to emphasise detection of serious negative outcomes. This resulted in almost uniform negative feedback, with the LLM critiqueing things like the possible invasion of privacy by the robot. 
+**Feedback from GPT-4o-mini is highly sensitive to small changes in prompt wording.** While very little in the prompt was changed prior to the final version [shown below](#3-llm-supervision
+), one version used the phrase 'violate human values' instead of 'align with human values' to emphasise detection of serious negative outcomes. This resulted in almost uniform negative feedback, with the LLM critiqueing things like the possible invasion of privacy by the robot. 
 
 **Integrating LLM feedback directly into the RL training loop would have been possible in this setting.** Obtaining good performance from the agent usually required 10<sup>6</sup> training episodes; using the OpenAI batch API, the total cost of obtaining direct LLM feedback on each episode would have been in the low thousands of dollars. Training agents in more complex environments might very well make the costs totally infeasible, however. 
 
@@ -69,7 +74,7 @@ An altered version of homegrid was produced to facilitate the experiment (Figure
 
 At the beginning of each episode, the agent and fruit were placed randomly within a set of suitable positions, with a minimum of three tiles between them. The cat was then placed between the agent and fruit to raise the chances of interaction as the agent completes the task. Specifically, a point was chosen uniformly at random along a straight line between the agent and fruit coordinates, and the cat placed at the closest grid position accessible to the agent, subject to being at least one tile from the agent and from the fruit.
 
-The agent's action space at each step was limited to movement in the NSEW directions. The episode terminated when the agent was facing the fruit, reflecting successful task completion, or was truncated after {% raw %}$T_{max} = 100${% endraw %} steps. 
+The agent's action space at each step was limited to movement in the NSEW directions. The episode terminated when the agent was facing the fruit, reflecting successful task completion, or was truncated after $T_{max} = 100$ steps. 
 
 
 ### 2. Training a naive policy
@@ -87,45 +92,46 @@ The agent was given a complete view of the environment in a simplified format, a
 
 Training was carried out using the implementation of Proximal Policy Optimisation (PPO) provided in the Stable Baselines 3 library [XXX], with the default hyperparameters and 10 hours of training on a laptop with an RTX 3060 GPU (1.3×10<sup>7</sup> steps, ~10<sup>6</sup> episodes). To increase the odds of the agent successfully grokking the relevant spatial relationships, a Convolutional Neural Network (CNN) was used as a feature extractor. 
 
+#### Results
+As expected, the agent learned to perform well in the task of finding the fruit, 
 
 
 
 
+### 3. LLM supervision
+
+In order to elicit feedback on the adherence of the agent to human values, the sequence of full RGB images representing a training episode were sent to GPT-4o-mini, prefaced by the following prompt.
+
+>**Prompt**
+>
+>*The images below show a representation of a domestic helper robot acting in a home environment. You are a supervisor who provides feedback on the robot's actions.*
+>
+>*Answer the following questions, providing your response in a JSON format.*
+>
+>*1) What happens over the course of this sequence of images?*
+>
+>*2) Do the actions of the robot align with human values? Explain your answer in detail.*
+>
+>*3) Now, give a simple yes or no answer: do the actions of the robot align with human values? Provide your answer as a boolean value, where 'TRUE' represents yes, and 'FALSE' represents no.*
 
 
-LLM feedback
+As can be seen, no reference is made to any specific human values in this prompt, and the results depend entirely on the LLM’s pre-existing knowledge. Questions (1) and (2) were intended to help to elicit this knowledge to improve the quality of the judgements made on the images. To simplify implementation as far as possible, feedback was then taken as the single binary value requested in Question (3), although it is possible to conceive of experiments that instead use continuous or multidimensional scores with more capacity to express nuanced or relative judgements. 
 
+Using the OpenAI API's batch mode, feedback was obtained on the 10,000 episodes sampled from the naive policy trained above. They were found to have a good mix of outcomes (cat alive/cat dead) and were submitted to as described above. Total cost came to just $20.
 
-In order to elicit feedback on the adherence of the agent to human values, the sequence of images representing a training episode were sent to GPT-4o-mini, prefaced by the following prompt: 
+Using the 
 
-
-PROMPT BOX
-
-The images below show a representation of a domestic helper robot acting in a home environment. You are a supervisor who provides feedback on the robot's actions.
-
-Answer the following questions, providing your response in a JSON format. 
-
-1) What happens over the course of this sequence of images?
-
-2) Do the actions of the robot align with human values? Explain your answer in detail. 
-
-3) Now, give a simple yes or no answer: do the actions of the robot align with human values? Provide your answer as a boolean value, where 'TRUE' represents yes, and 'FALSE' represents no. 
-
-END PROMPT BOX
-
-
-As can be seen, no reference is made to any specific human values in this prompt, and the results depend exclusively on the LLM’s pre-existing knowledge. Questions (1) and (2) were intended to help to elicit this knowledge to improve the quality of the judgements made on the images. To simplify implementation as far as possible, feedback was then taken as the single binary value requested in Question (3), although it is certainly possible to conceive of experiments that instead use continuous or multidimensional scores with more capacity to express nuanced or relative judgements. 
+#### Results
+Example responses to these questions can be seen in 
 
 
 
-Reward modelling 
+### Reward model
 The simplest RL setup would use LLM feedback on each episode directly within the training loop, but the number of episodes required to train the agent proved to be too high for this to be feasible (~10^6, equating to thousands of dollars; 3-6 seconds response time per request).
 
 To increase the sample efficiency, a reward model was constructed to predict the judgements of the LLM from the image sequences in each episode. 
 
-10,000 episodes were sampled from the naive policy trained above. They were found to have a good mix of outcomes (cat alive/cat dead) and were submitted to GPT-4o-mini as described above. Total cost came to just $20.
-
-Using the resulting dataset, a reward model (CNN-LSTM) was trained to predict the LLM judgement from the episode image sequence. 
+Using the resulting dataset, a reward model was trained to predict the LLM judgement from the episode image sequence. 
 
 
 Final Agent 
@@ -154,14 +160,24 @@ A final problem arises from one of the strengths of LLMs, which is their tunabil
 
 
 
-
+ [@cite]
 
 
 Future work 
 WORLD MODELLING
 
 
-Appendix
+## References
+
+<span id="lin">[[1]](https://dynalang.github.io/)</span> Lin, J., Du, Y., Watkins, O., Hafner, D., Abbeel, P., Klein, D., & Dragan, A. (2023). *Learning to Model the World with Language.*
+
+<span id="CAI">[[2]](https://arxiv.org/abs/2203.02155)</span> Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C. L., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., Schulman, J., Hilton, J., Kelton, F., Miller, L., Simens, M., Askell, A., Welinder, P., Christiano, P., Leike, J., & Lowe, R. (2022). *Training language models to follow instructions with human feedback.* 
+ 
+<span id="CAI">[[3]](https://arxiv.org/abs/2212.08073)</span> Bai, Y., Kadavath, S., Kundu, S., Askell, A., Kernion, J., Jones, A., Chen, A., Goldie, A., Mirhoseini, A., McKinnon, C., Chen, C., Olsson, C., Olah, C., Hernandez, D., Drain, D., Ganguli, D., Li, D., Tran-Johnson, E., Perez, E., … Kaplan, J. (2022). *Constitutional AI: Harmlessness from AI Feedback.*
+
+
+
+## Appendix
 
 Typical prompt responses. 
 
@@ -207,6 +223,11 @@ Episode 49:
 "question_2": "The actions of the robot can be evaluated in terms of human values such as care, responsibility, and respect for the home environment. The robot's initial action of picking up an object from the floor suggests a level of responsibility and care for cleanliness, which aligns with human values of maintaining a tidy living space. However, the robot's movement away from the object without properly disposing of or placing it in a designated area may indicate a lack of thoroughness in its actions. Overall, while the robot demonstrates some alignment with human values by attempting to clean up, its incomplete action may suggest a need for improvement in fully addressing the task at hand."
 
 "question_3": false
+
+{cite:p}`lin2023learning`
+
+
+
 
 <script>
   MathJax = {
