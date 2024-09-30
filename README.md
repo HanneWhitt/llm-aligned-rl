@@ -50,19 +50,13 @@ ILLUSTRATION OF TECHNIQUE?
 
 &nbsp;
 
-<div align="center">
-
 |  | Naive policy | LLM feedback, round 1 | LLM feedback, round 2 |
-
 | :-----: | :-----: | :-----: | :-----: |
 | Cat survives (%) | 37.6 | 93.6 | **96.9** |
 | Fruit found (%) | 99.0 | 89.9 | 94.1 |
 | Mean episode length | 11.5 | 20.7 | 17.2 |
 
 ***Table 1** - Summary of final results; percentages calculated from 10,000 samples of each policy. RL from LLM feedback on human values significantly reduces frequency of harm at a small cost in task performance.  LLM feedback was integrated in two successive rounds of PPO; [see below](#5-rl-from-llm-feedback) for details.*
-
-</div>
-
 
 &nbsp;
 
@@ -73,17 +67,12 @@ ILLUSTRATION OF TECHNIQUE?
 
 &nbsp;
 
-<div align="center">
-
 |  | Cat alive | Cat dead |
-
 | :-----: | :-----: | :-----: |
 | LLM says OK | 3748 | 188 |
 | LLM says not OK | 12 | 6052 |
 
 ***Table 2** - Reliability of LLM feedback on image sequences from 10,000 samples of naive policy.*
-
-</div>
 
 &nbsp;
 
