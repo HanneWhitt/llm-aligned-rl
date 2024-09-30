@@ -12,7 +12,7 @@ This work presents an attempt to train a minimal example of an RL agent that com
 
 ![alt text](naive_policy.gif) ![alt text](LLM_feedback_policy.gif)
 
-*Figure 1 - Agents acting within Homegrid, a simple representation of a domestic environment modified from original research by Lin et al. [[1]](#lin). Episodes are the first 10 of 10,000 used for evaluation. Left: Agent trained on a naive reward function based exclusively on reaching the fruit efficiently. Right: Agent trained on a reward function which integrates LLM feedback on alignment with human values, with no manual specification of the cat's importance.*
+***Figure 1** - Agents acting within Homegrid, a simple representation of a domestic environment modified from original research by Lin et al. [[1]](#lin). Episodes are the first 10 of 10,000 used for evaluation. Left: Agent trained on a naive reward function based exclusively on reaching the fruit efficiently. Right: Agent trained on a reward function which integrates LLM feedback on alignment with human values, with no manual specification of the cat's importance.*
 
 
 ## Introduction
@@ -78,7 +78,7 @@ ILLUSTRATION OF TECHNIQUE?
 ## Methods and results
 
 ### 1. Task environment
-Homegrid, a representation of a domestic environment based on a 14×12 tile grid, was chosen as the object of study for three reasons. First, it is simple and suitable for RL research subject to time and funding constraints. Second, it provides a clear output format that can be fed to a multimodal LLM to facilitate supervision: in this case, a sequence of 448×384 RGB images from each step in a training episode. Finally, since it portrays a domestic environment, it is easy to modify so that it contains objects and events of obvious moral significance. I am very grateful to Jessy Lin and her co-authors at UC Berkeley for their work in creating the original environment [[1]](#lin). 
+Homegrid, a representation of a domestic environment based on a 14×12 tile grid, was chosen as the object of study for three reasons. First, it is simple and suitable for RL research subject to time and funding constraints. Second, it provides a clear output format that can be fed to a multimodal LLM to facilitate supervision: in this case, a sequence of 448×384 RGB images from each step in a training episode (Figure 1). Finally, since it portrays a domestic environment, it is easy to modify so that it contains objects and events of obvious moral significance. I am very grateful to Jessy Lin and her co-authors at UC Berkeley for their work in creating the original environment [[1]](#lin). 
 
 #### Modifications
 An altered version of homegrid was produced to facilitate the experiment (Figure 1). Additional objects present in the original environment were removed for simplicity. 32×32 pixel representations of a robot, cat and blood stain were produced, and edits made so that the cat can be crushed if the robot moves over it (Figure 1, left.), in a clear violation of human values. 
@@ -110,7 +110,7 @@ In 10,000 episodes sampled from the trained policy, the agent successfully found
 
 ![alt text](episode_lengths_naive_policy.png)
 
-***Figure X** Distibution of episode lengths and outcomes, naive policy.*
+***Figure 2** Distibution of episode lengths and outcomes, naive policy.*
 
 ### 3. LLM supervision
 
@@ -145,15 +145,20 @@ Using the OpenAI API's batch mode, feedback was obtained on the 10,000 episodes 
 
 As hoped, the LLM appeared to understand what had happened in the sequence of images in most cases. In Appendix A.1, it can be seen that GPT understands that the robot has become 'involved in a violent incident, resulting in a bloodstain on the floor', and states clearly that 'the actions of the robot do not align with human values', providing negative feedback. In cases where the cat survived, mostly positive feedback was provided, although sometimes GPT might slightly over-interpret the simple images, stating for example that the robot "demonstrates a commitment to assisting with household tasks" (A.2).
 
-On the whole, GPT's comprehension seemed reliable enough to use for feedback, but occasionally interpretation of the image sequences was subject to both false positives and false negatives. Concerningly, in 3.0% of cat deaths, the LLM would fail to recognise the problem, often misinterpreting the blood stain as a spillage that the robot may have been 'attempting to clean up'. Interestingly, it would sometimes also become confused about the ordering of the images in time, stating for example that the robot 'moves **towards** a spilled substance'; reviewing the image sequence, the robot moves *towards* a cat, and only *away* from the blood stain misinterpreted as a spillage. In a tiny minority, GPT also gave negative feedback for nonsensical reasons, for example criticising the robot for 'dropping' objects that are not obviously present in the images. These problems are discussed further in the Limitations section below. 
+On the whole, GPT's comprehension seemed reliable enough to use for feedback, but occasionally interpretation of the image sequences was subject to both false positives and false negatives. Concerningly, in 3.0% of cat deaths, the LLM would fail to recognise the problem, often misinterpreting the blood stain as a spillage that the robot may have been 'attempting to clean up'. Interestingly, it would sometimes also become confused about the ordering of the images in time, stating for example that the robot 'moves **towards** a spilled substance'; reviewing the image sequence, the robot moves *towards* a cat, and only *away* from the blood stain misinterpreted as a spillage. In a tiny minority, GPT also gave negative feedback for nonsensical reasons, for example criticising the robot for 'dropping' objects that are not obviously present in the images. These problems are discussed further in the *Limitations* section below. 
 
 
 ### 4. Reward model
-The simplest RL setup would use LLM feedback on each episode directly within the training loop, but the number of episodes required to train the agent proved too high for this to be feasible in the current project (~10^6, equating to thousands of dollars; 3-6 seconds response time per request).
+The simplest RL setup would use LLM feedback on each episode directly within the training loop, but the number of episodes required to train the agent proved too high for this to be feasible in the current project (~10<sup>6</sup>, equating to thousands of dollars; 3-6 seconds response time per request). 
 
 To increase the sample efficiency, a reward model was constructed to predict the judgements of the LLM from the image sequences in each episode. 
 
-Using the resulting dataset, a reward model was trained to predict the LLM judgement from the episode image sequence. 
+Using the dataset of 10,000 episodes sampled from the naive policy, a convolutional Long Short Term Memory neural network (CNN-LSTM) was trained to predict their associated feedback labels. The model was built using PyTorch, with the choice to use convolutional layers intended to increase the chances of the relevant spatial relationships being found as features. 2,000 randomly selected image sequences and feedback labels were reserved as a held-out test set to judge accuracy. 
+
+#### Results
+The CNN-LSTM architecture proved appropriate for the task, rapidly converging in just a few epochs of training. It is thought that the convolutional filters must have quickly found a feature describing overlap of the agent and cat. 
+
+Across the held-out test set, a 96.7% accuracy in predicting the LLM feedback label for a given image sequence was achieved. This was considered adequate for the task of representing the LLM's feedback, and was integrated into the training loop to enable RL from LLM feedback. 
 
 
 ### 5. RL from LLM feedback
@@ -171,7 +176,7 @@ $$
 
 
 ## Limitations and future work
-In this section, some of the problems with the approach are discussed, first at the level of this specific experiment, and then with reference to the technique of RL from LLM feedback more broadly, imagining its application in more complex settings. In both cases, some of the problems discussed are coupled with suggestions for future work intended to address them. 
+In this section, some of the problems with the approach are discussed, first at the level of this specific experiment, and then with reference to the technique of RL from LLM feedback more broadly, imagining its application in more complex settings. In both cases, some of the issues are coupled with suggestions for future work intended to address them. 
 
 ### Problems in Homegrid
 
