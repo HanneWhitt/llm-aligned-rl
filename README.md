@@ -148,7 +148,14 @@ Using the resulting dataset, a reward model was trained to predict the LLM judge
 
 Final Agent 
 
-
+$$
+r_{t}=
+\begin{cases}
+f \times (1 - c\dfrac{t}{T_{max}}) & \quad \text{if agent facing fruit}\\ 
+fr_{tr} & \quad \text{if episode truncated}\\
+0 & \quad \text{otherwise}
+\end{cases}
+$$
 
 
 
