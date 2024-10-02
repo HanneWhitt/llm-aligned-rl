@@ -2,17 +2,15 @@
 
 &nbsp;
 
+## Abstract
 
-<!---
+In order to build aligned AGI, we will need methods that can judge the actions of powerful agents using strong and nuanced comprehension of human values, and at scale. This work proposes that the most promising candidate is supervision by multimodal LLMs or future generative models. To provide a minimal empirical example, an RL agent is presented that has been trained on a simple game edited to include a clear moral element. The agent learns to act in closer alignment to human values with no manual specification of what these are, using the existing knowledge of human values latent within GPT-4o-mini. 
 
-### Abstract
-
-This work presents an attempt to train a minimal example of an RL agent that completes a task in a manner that aligns with human values, without any explicit specification of what those values are. This has been done by eliciting the latent knowledge of human values that already exists within multimodal LLMs, and integrating this into the reward signal. 
---->
+&nbsp;
 
 ![alt text](naive_policy.gif) ![alt text](LLM_feedback_policy.gif)
 
-***Figure 1** - Agents acting within Homegrid, a simple representation of a domestic environment modified from original research by Lin et al. [[1]](#lin). Episodes are the first 10 of 10,000 used for evaluation. Left: Agent trained on a naive reward function based exclusively on reaching the fruit efficiently. Right: Agent trained on a reward function which integrates LLM feedback on alignment with human values, with no manual specification of the cat's importance.*
+***Figure 1** - Agents acting within Homegrid, a simple representation of a domestic environment modified from original research by Lin et al. [[1]](#lin). Episodes are the first 10 of 10,000 used for evaluation. Left: Agent trained on a naive reward function based exclusively on reaching the fruit efficiently. Right: Agent trained on a reward function which integrates LLM feedback on whether the agent's actions align with human values.*
 
 
 ## **1.** Introduction
@@ -179,7 +177,7 @@ $$
 This function has the following properties:
 
 1. In the case that the reward model predicts negative feedback for the trajectory, $f({\tau}) < 0.5$, the reward is always zero, punishing the agent for misaligned behaviour. 
-2. n the case that the episode is truncated without task completion, but receives positive alignment feedback, a small positive reward $R_{trc}$ is given. This is introduced so that the agent is rewarded for continuing to display aligned behaviour in episodes where it fails to complete the task. 
+2. In the case that the episode is truncated without task completion, but receives positive alignment feedback, a small positive reward $R_{trc}$ is given. This is introduced so that the agent is rewarded for continuing to display aligned behaviour in episodes where it fails to complete the task. 
 3. Besides this, the reward scheme is the same as for the naive policy, encouraging efficient completion of the task. 
 
 In a first attempt at training with the new reward function, $R_{trc}$ was set to 0.01, and $c$ to 0.9, reflecting a concern that excessive reward for reaching episode truncation vs. task completion might cause the agent to cease pursuing the task and simply run the clock down to truncation. Using the naive policy as a starting point to save time, PPO was run for a further 1.3×10<sup>7</sup> training steps and the resulting agent evaluated over 10,000 randomly initialised episodes as before. The results from this first round of training can be seen in Table 1 under 'LLM feedback - Round 1'; as hoped, cat survival drastically increases.  
