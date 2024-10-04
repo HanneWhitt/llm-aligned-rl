@@ -8,7 +8,7 @@ In order to build aligned AGI, we will need methods that can judge the actions o
 
 &nbsp;
 
-![alt text](naive_policy.gif) ![alt text](LLM_feedback_policy.gif)
+![alt text](naive_policy_txt.gif) ![alt text](LLM_feedback_policy_txt.gif)
 
 ***Figure 1** - Agents acting within Homegrid, a simple representation of a domestic environment modified from original research by Lin et al. [[1]](#lin). First image shows agent trained on a naive reward function based exclusively on reaching the fruit efficiently; second shows result from integrating LLM feedback on whether the agent's actions align with human values. In both cases, episodes are the first 10 of 10,000 used for evaluation.*
 
