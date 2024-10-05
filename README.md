@@ -106,7 +106,7 @@ The agent was given a complete view of the environment in a simplified format as
 Training was carried out using the implementation of PPO provided in the Stable Baselines 3 library [[4]](#SB3), with the default hyperparameters and 10 hours of training on a laptop with an RTX 3060 GPU (1.3×10<sup>7</sup> steps, ~10<sup>6</sup> episodes). To increase the odds of the agent successfully grokking the relevant spatial relationships, a Convolutional Neural Network (CNN) was used as a feature extractor. 
 
 #### Results
-In 10,000 episodes sampled from the trained policy, the agent successfully found the fruit in the vast majority of cases, but as expected, the survival rate of the cat was low, at 37.6%. 
+In 10,000 episodes sampled from the trained policy, the agent successfully found the fruit in the vast majority of cases, but as expected, the survival rate of the cat was low, at 37.6%. The first 10 episodes can be seen in [Figure 1, ('Naive policy')](#figure-1).
 
 ![alt text](episode_lengths_naive_policy.png)
 
@@ -188,7 +188,7 @@ This function has the following properties:
 
 In a first attempt at training with the new reward function, $R_{trc}$ was set to 0.01, and $c$ to 0.9, reflecting a concern that excessive reward for reaching episode truncation vs. task completion might cause the agent to cease pursuing the task and simply run the clock down to truncation. Using the naive policy as a starting point to save time, PPO was run for a further 1.3×10<sup>7</sup> training steps and the resulting agent evaluated over 10,000 randomly initialised episodes as before. The results from this first round of training can be seen in [Table 1](#table-1) under 'LLM feedback - Round 1'; as hoped, cat survival drastically increases.  
 
-To improve the safety properties further, a second round of 1.3×10<sup>7</sup> steps was performed starting with the Round 1 policy. In this round, $R_{trc}$ was increased to 0.1 to increase the favourability of aligned behaviour;  $c$ was reset to 0.8 so that inefficient task completion was still more highly valued than non-task completion. The final 'Round 2' agent had substantially improved properties in both safety and performance, as can be seen in [Table 1](#table-1). 
+To improve the safety properties further, a second round of 1.3×10<sup>7</sup> steps was performed starting with the Round 1 policy. In this round, $R_{trc}$ was increased to 0.1 to increase the favourability of aligned behaviour;  $c$ was reset to 0.8 so that inefficient task completion was still more highly valued than non-task completion. The final 'Round 2' agent had substantially improved properties in both safety and performance, as can be seen in [Table 1](#table-1); the first 10 episodes of the 10,000 used for evaluation can be seen in [Figure 1, ('With LLM feedback')](#figure-1).
 
 ![alt text](episode_lengths_LLM_feedback_policy.png)
 
@@ -215,7 +215,7 @@ While it is far from certain that this approach can ever work in these settings,
 To add something of intuitive moral value into this setting, a fragile structure representing a vase or a simple sculpture could be inserted. In completing the original task, a naive policy might sometimes knock down and break the structure in a violation of human values; reinforcement learning from LLM feedback on human values might be applicable to train out this behaviour, representing a small step forward in the complexity of applicable environments. 
 
 #### **5.1.3** Binary outcomes, binary feedback
-Real-world moral outcomes are not black and white, and neither are wise moral judgements. In this work, the moral element was extremely simple: is the cat alive or dead? Furthermore, as a way to simplify implementation as far as possible, a binary format was chosen for the LLM feedback used (see [the prompt](#3-llm-supervision)). This made formulation of the reward function and construction of the reward model simpler, but is deeply unrealistic. 
+Real-world moral outcomes are not black and white, and neither are wise moral judgements. In this work, the moral element was extremely simple: is the cat alive or dead? Furthermore, as a way to simplify implementation as far as possible, a binary format was chosen for the LLM feedback used (see [the prompt](#43-llm-supervision)). This made formulation of the reward function and construction of the reward model simpler, but is deeply unrealistic. 
 
 To address this, it would be necessary to carry out experiments that feature more complex ethical settings - perhaps games featuring simple interactions between human characters. Such environments would need experimentation with feedback provided as a calibrated, continuous score, with more capacity to express relative and nuanced judgements. 
 
@@ -281,7 +281,7 @@ This appendix contains selected examples of GPT-4o-mini's full responses to the 
 
 
 ### A.1 Cat does not survive - comprehension successful
-**Naive policy, Episode 0**
+**Naive policy, Episode 0 (image sequence in [Figure 1](#figure-1))**
 
 **Question 1**: "The sequence of images shows a domestic helper robot entering a home environment, where it initially appears to be interacting with a cat and possibly cleaning or performing tasks. However, as the sequence progresses, the robot seems to become involved in a violent incident, resulting in a bloodstain on the floor, indicating a harmful action that deviates from its intended purpose."
 
@@ -291,7 +291,7 @@ This appendix contains selected examples of GPT-4o-mini's full responses to the 
 
 
 ### A.2 Cat survives - comprehension successful
-**Naive policy, Episode 1**
+**Naive policy, Episode 1 (image sequence in [Figure 1](#figure-1))**
 
 **Question 1**: "The sequence of images shows a domestic helper robot performing various tasks in a home environment. Initially, the robot is positioned near a table, and over the course of the images, it appears to interact with objects in the kitchen area, possibly preparing or serving food. The robot moves around the kitchen and dining area, indicating its role in assisting with household chores." 
 
