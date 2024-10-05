@@ -227,13 +227,26 @@ Hence, the success of the technique in future relies on the hope that the capabi
 
 
 ### **5.2** Future problems with RL from LLM feedback on Human Values
-Moving on from this experiment and its immediate successors, LLM supervision of RL in more advanced agents could give rise to several potential problems.
+Moving on from this experiment and its immediate successors, LLM supervision of RL in more advanced agents could give rise to several further problems.
 
 #### **5.2.1** Goal misgeneralisation
-Problems could also arise from goal misgeneralisation, or the inner alignment problem. Regardless of the apparent safety of an agent within a training environment, deployment into the world might reveal that it has learned a problematic proxy of the LLM's knowledge of values. In the section on future work below, a technique is described that might address this problem using model-based RL techniques; in short, make the agent's world model explicit, and use real-time LLM feedback on its predictions of the future to guard against unsafe behaviour. 
+Problems could arise from goal misgeneralisation [[6]](#goal-misgeneralisation), or the inner alignment problem. Regardless of the apparent safety of an agent within a training environment, deployment into the world might reveal that it has learned a problematic proxy of the LLM's knowledge of values, which would reveal itself when the agent encountered inputs outside the distribution of those it had received in training.
+
+To provide a toy example based on the experiment here, what if the final agent was deployed in an environment which contained not only a cat, but also a dog? Since the agent has only learned to protect cats in the training environment, the dog might not fare so well.
+
+#### Explicit World-modelling
+It is possible that an extension to the current technique might mitigate this problem. PPO is a model-free RL technique, meaning that it learns the policy directly from experience, but model-based techniques exist also. 
+
+With an explicit model of the environment available to it, able to predict the consequences of actions, it might be possible to apply LLM judgement on the resulting outcomes before the action is taken. In the toy example, while the agent has not seen a dog in training, if it had access to an environment model that included possible harm to the dog and could query an LLM in real time with the predicted trajectory, then these predictions could be used to ensure safety.
+
+Learning accurate models of enviroments such as the real world is a huge and unsolved challenge, which explains the predominance of model-free techniques in RL today. However, there are some conceptual reasons to argue that this approach may be feasible for advanced future agents. 
+
+First, the world model used does not need to be perfectly accurate. In fact, the condition that it needs to meet is only that it must be as accurate as any implicit, internal model that the agent itself learns, and have access to all the same information, so as not to be subject to manipulation. This is a much lower bar. 
+
+Second, we have evidence that this approach can work because it occurs in human minds. In addition to simple instincts to prevent harm to others, which one might argue are 'trained' by simple rewards, we also have a conscience. Arguably, a conscience is the result of the application of an imperfect world model to predict the outcomes of an action, driving us toward actions with outcomes that are morally acceptable. This is the basis of the most important moral decisions that humans make. Using LLM judgement, it may be possible to produce an engineered equivalent.
 
 #### **5.2.2** Reward hacking
-Novel modes of reward hacking might emerge which leverage unexpected behaviours of a LLM, akin to those caused by jailbreaking or hallucination observed in human use. A powerful RL agent acting in a complex environment might happen upon strategies which exploit these weaknesses to gain high reward in ways that clearly do not agree with human values. 
+Another problem that could arise is reward hacking, which might take on novel forms to exploit the rewards given by an LLM. These might leverage unexpected or unintended behaviours of the model, like those seen in jailbreaking or hallucination during human use. A powerful RL agent acting in a complex environment might happen upon strategies which exploit these weaknesses to gain high reward in ways that clearly do not agree with human values. 
 
 #### **5.2.3** Misuse
 A final problem arises from one of the strengths of LLMs, which is their tunability. It would clearly be possible to fine-tune or prompt an LLM such that it supervises an RL agent according to an actively malicious or simply short-sighted version of human values, or the views of a particular group. 
@@ -254,6 +267,9 @@ A final problem arises from one of the strengths of LLMs, which is their tunabil
 <span id="SB3">[[4]](http://jmlr.org/papers/v22/20-1364.html)</span> Raffin, A., Hill, A., Gleave, A., Kanervisto, A., Ernestus, M., & Dormann, N. (2021). *Stable-Baselines3: Reliable Reinforcement Learning Implementations.* Journal of Machine Learning Research, 22(268), 1–8. 
 
 <span id="panda-gym">[[5]](https://github.com/qgallouedec/panda-gym/tree/master)</span> Gallouédec, Q., Cazin, N., Dellandréa, E., & Chen, L. (2021). *panda-gym: Open-Source Goal-Conditioned Environments for Robotic Learning.* 4th Robot Learning Workshop: Self-Supervised and Lifelong Learning at NeurIPS.
+
+<span id="goal-misgeneralisation">[[5]](https://arxiv.org/abs/2105.14111)</span> Langosco, L., Koch, J., Sharkey, L., Pfau, J., Orseau, L., & Krueger, D. (2023). *Goal Misgeneralization in Deep Reinforcement Learning*. 
+
 
 ## Appendix
 
