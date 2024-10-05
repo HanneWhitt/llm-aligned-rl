@@ -214,8 +214,16 @@ Real-world moral outcomes are not black and white, and neither are wise moral ju
 
 To address this, it would be necessary to carry out experiments that feature more complex ethical settings - perhaps games featuring simple interactions between human characters. Such environments would need experimentation with feedback provided as a calibrated, continuous score, with more capacity to express relative and nuanced judgements. 
 
-#### **5.1.3** Problems with the results from GPT-4o-mini.
-Despite the simple binary outcome and binary feedback, there were problems in the responses from GPT-4o-mini for a minority of episodes.
+#### **5.1.3** Problems with the results from GPT-4o-mini
+Despite the simple binary outcome and binary feedback, there were problems in the responses from GPT-4o-mini for a minority of episodes. GPT-4o-mini occasionally returned positive feedback in cases where the cat had clearly been killed, or nonsensical negative feedback when it had not (results in section 4.3; example responses A.3, A.4). 
+
+It is very possible that the results might have been improved by using a more realistic art style. For example, the most common mistake of misinterpreting the blood spatter as a spillage is intuitively reasonable. 
+
+However, especially given the availability of information from the previous and succeeding images, which in combination clearly show the cat becoming a blood splatter, it seems reasonable to suggest that these are not mistakes a human supervisor would have made. Even if there was some uncertainty over what had happened, the unacceptable risk would have been recognised, and negative feedback provided. 
+
+This points to a fundamental limitation of RL from LLM feedback on human values, which is that it depends completely on the world-modelling capabilities of the LLM model used for supervision. It is not possible to answer questions on the morality of events without having properly grasped the events themselves. 
+
+Hence, the success of the technique in future relies on the hope that the capabilities of generative models will expand commensurately with those of the agents they are required to supervise. This should include, eventually, being able to properly understand the long-term implications of complex actions taken in physical reality or over the internet. 
 
 
 ### **5.2** Future problems with RL from LLM feedback on Human Values
