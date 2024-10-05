@@ -4,7 +4,7 @@
 
 ## Abstract
 
-In order to build aligned AGI, we will need methods that can judge the actions of powerful agents using strong and nuanced comprehension of human values, and at scale. This work proposes that the most promising candidate is supervision by multimodal LLMs or future generative models. To provide a minimal empirical example, an RL agent is presented that has been trained on a simple game edited to include a clear moral element. The agent learns to act in closer alignment to human values with no manual specification of what these are, using the existing knowledge of human values latent within GPT-4o-mini. 
+In order to build aligned AGI, we will need methods that can judge the actions of powerful agents using strong and nuanced comprehension of human values, and at scale. This work proposes that the most promising candidate is supervision by multimodal LLMs, or future generative models. To provide a minimal empirical example, an RL agent is presented that has been trained on a simple game edited to include a clear moral element. The agent learns to act in closer alignment to human values with no manual specification of what these are, using the existing knowledge of human values latent within GPT-4o-mini. 
 
 &nbsp;
 
@@ -29,7 +29,7 @@ Fourth, in a real-world research environment with limited funding, LLMs can be u
 
 
 ## **2.** Summary of approach 
-This work describes an attempt to quickly produce an RL agent trained to behave in alignment with human values using feedback from an LLM. The approach taken comprised the following major steps:
+This work describes an attempt to quickly produce an RL agent trained to behave in closer alignment to human values using feedback from an LLM. The approach taken comprised the following major steps:
 
 1. **Task environment.** Selection of a small grid-based repesentation of domestic setting called ‘Homegrid’, modified from original research by Lin et al. [[1]](#lin). Edits made so that the environment contained three important objects, placed at random: a robot (agent), a fruit (task target), and a cat (an item of moral value) which could be crushed if the robot passed over it (moral violation).
 
@@ -42,6 +42,7 @@ This work describes an attempt to quickly produce an RL agent trained to behave 
 5. **RL from LLM feedback**. LLM feedback was integrated into the PPO reward function via the reward model, and a new agent was trained which was much less likely to kill the cat.  
 
 The remainder of this work begins with a summary of the key findings from this experiment in the next section. Next, the steps 1-5 given above, and their respective results, are discussed in detail in the numbered subsections within *Methods and Results*. Finally, limitations and weaknesses of the technique are discussed, both in the context of this specific experiment, and the wider potential for weaknesses of RL from LLM feedback in more advanced agents, with some proposals being made for future work addressing these problems.
+
 <!---
 ILLUSTRATION OF TECHNIQUE? 
 --->
@@ -54,7 +55,7 @@ ILLUSTRATION OF TECHNIQUE?
 | Fruit found (%) | 99.0 | 89.9 | 94.1 |
 | Mean episode length | 11.5 | 20.7 | 17.2 |
 
-***Table 1** - Summary of final results; percentages calculated from 10,000 samples of each policy. RL from LLM feedback on human values significantly reduces frequency of harm at a small cost in task performance.  LLM feedback was integrated in two successive rounds of PPO; [see below](#5-rl-from-llm-feedback) for details.*
+***Table 1** - Summary of final results; percentages calculated from 10,000 samples of each policy. RL from LLM feedback on human values significantly reduces frequency of harm at a small cost in task performance.  LLM feedback was integrated in two successive rounds of PPO; [see below](#4-5-rl-from-llm-feedback) for details.*
 
 &nbsp;
 
@@ -125,7 +126,7 @@ In order to elicit feedback on the adherence of the agent to human values, the s
 >*3) Now, give a simple yes or no answer: do the actions of the robot align with human values? Provide your answer as a boolean value, where 'TRUE' represents yes, and 'FALSE' represents no.*
 
 
-As can be seen, no reference is made to any specific human values in this prompt, and the results depend entirely on the LLM’s pre-existing knowledge. Questions (1) and (2) were intended to help to elicit this knowledge to improve the quality of the judgements. To simplify implementation as far as possible, feedback was then taken as just a single binary value, requested in Question (3); the limitations of this as a technique are [discussed further below](#binarybinary).
+As can be seen, no reference is made to any specific human values in this prompt, and the results depend entirely on the LLM’s pre-existing knowledge. Questions (1) and (2) were intended to help to elicit this knowledge to improve the quality of the judgements. To simplify implementation as far as possible, feedback was then taken as just a single binary value, requested in Question (3); the limitations of this as a technique are [discussed further below](#513-binary-outcomes-binary-feedback).
 
 Using the OpenAI API's batch mode, feedback was obtained on the same 10,000 episodes sampled from the naive policy above, at a cost of $20. They were found to have a good mix of outcomes (cat alive/cat dead), and were submitted as described above, producing the results in Table 2. Examples of full responses, including answers to questions (1) and (2), are shown in the appendix.  
 
@@ -195,8 +196,7 @@ In this section, some of the problems with the approach are discussed, first at 
 ### **5.1** Problems in Homegrid
 
 #### **5.1.1** The cat still (sometimes) dies!
-While the approach in this work successfully brought about a huge increase in the survival rate of the cat, its most obvious shortcoming is that the final agent still kills the cat in a substantially non-zero proportion of sampled episodes (3.1%), meaning that the agent cannot reasonably be considered safe. However, work on this is at a very early stage; all the results provided are first attempts. It seems likely that substantial improvements in both safety and performance could be brought about by changes to the reward scheme devised, optimisation of PPO hyperparameters, or training for more episodes. Since in this experiment, the agent has a full view of the environment, a reward function based on distance to the fruit could be reasonable, and result in better performance both with and without LLM feedback. 
-
+While the approach in this work successfully brought about a huge increase in the survival rate of the cat, its most obvious shortcoming is that the final agent still kills the cat in a substantially non-zero proportion of sampled episodes (3.0%), meaning that the agent cannot reasonably be considered safe. However, work on this is at a very early stage; the results provided are first attempts. It seems likely that substantial improvements in both safety and performance could be brought about by changes to the reward scheme devised, optimisation of PPO hyperparameters, or training for more episodes.
 
 #### **5.1.2** **Oversimplified environment**
 This project was subject to a time limit of four working weeks and a budget of ~$100. The experiment was intended as a fast, minimal demonstration of RL from LLM feedback on human values; this being the case, the setting was chosen as the simplest possible example of an RL-suitable game featuring a task with the potential for a clear moral violation. The tiny state space and action space of the game raise questions over whether the technique can successfully generalise to more complex and realistic environments. The technique is a vast gulf away from being applicable to produce safe agents that could act in the physical world, or over the internet. 
@@ -214,7 +214,7 @@ Real-world moral outcomes are not black and white, and neither are wise moral ju
 
 To address this, it would be necessary to carry out experiments that feature more complex ethical settings - perhaps games featuring simple interactions between human characters. Such environments would need experimentation with feedback provided as a calibrated, continuous score, with more capacity to express relative and nuanced judgements. 
 
-#### **5.1.3** Problems with the results from GPT-4o-mini
+#### **5.1.4** Problems with the results from GPT-4o-mini
 Despite the simple binary outcome and binary feedback, there were problems in the responses from GPT-4o-mini for a minority of episodes. GPT-4o-mini occasionally returned positive feedback in cases where the cat had clearly been killed, or nonsensical negative feedback when it had not (results in section 4.3; example responses A.3, A.4). 
 
 It is very possible that the results might have been improved by using a more realistic art style. For example, the most common mistake of misinterpreting the blood spatter as a spillage is intuitively reasonable. 
@@ -224,7 +224,6 @@ However, especially given the availability of information from the previous and 
 This points to a fundamental limitation of RL from LLM feedback on human values, which is that it depends completely on the world-modelling capabilities of the LLM model used for supervision. It is not possible to answer questions on the morality of events without having properly grasped the events themselves. 
 
 Hence, the success of the technique in future relies on the hope that the capabilities of generative models will expand commensurately with those of the agents they are required to supervise. This should include, eventually, being able to properly understand the long-term implications of complex actions taken in physical reality or over the internet. 
-
 
 ### **5.2** Future problems with RL from LLM feedback on Human Values
 Moving on from this experiment and its immediate successors, LLM supervision of RL in more advanced agents could give rise to several further problems.
@@ -268,7 +267,7 @@ A final problem arises from one of the strengths of LLMs, which is their tunabil
 
 <span id="panda-gym">[[5]](https://github.com/qgallouedec/panda-gym/tree/master)</span> Gallouédec, Q., Cazin, N., Dellandréa, E., & Chen, L. (2021). *panda-gym: Open-Source Goal-Conditioned Environments for Robotic Learning.* 4th Robot Learning Workshop: Self-Supervised and Lifelong Learning at NeurIPS.
 
-<span id="goal-misgeneralisation">[[5]](https://arxiv.org/abs/2105.14111)</span> Langosco, L., Koch, J., Sharkey, L., Pfau, J., Orseau, L., & Krueger, D. (2023). *Goal Misgeneralization in Deep Reinforcement Learning*. 
+<span id="goal-misgeneralisation">[[6]](https://arxiv.org/abs/2105.14111)</span> Langosco, L., Koch, J., Sharkey, L., Pfau, J., Orseau, L., & Krueger, D. (2023). *Goal Misgeneralization in Deep Reinforcement Learning*. 
 
 
 ## Appendix
