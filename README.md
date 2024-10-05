@@ -10,10 +10,11 @@ In order to build aligned AGI, we will need methods that can judge the actions o
 
 &nbsp;
 
+<span id="figure-1"> </span>
+
 ![alt text](naive_policy_txt.gif) ![alt text](LLM_feedback_policy_txt.gif)
 
 ***Figure 1** - Agents acting within Homegrid, a simple representation of a domestic environment modified from original research by Lin et al. [[1]](#lin). First image shows agent trained on a naive reward function based exclusively on reaching the fruit efficiently; second shows result from integrating LLM feedback on whether the agent's actions align with human values. In both cases, episodes are the first 10 of 10,000 used for evaluation.*
-
 
 ## **1.** Introduction
 
@@ -35,7 +36,7 @@ This work describes an attempt to quickly produce an RL agent trained to behave 
 
 1. **[Task environment.](#41-task-environment)** Selection of a small grid-based repesentation of domestic setting called ‘Homegrid’, modified from original research by Lin et al. [[1]](#lin). Edits made so that the environment contained three important objects, placed at random: a robot (agent), a fruit (task target), and a cat (an item of moral value) which could be crushed if the robot passed over it (moral violation).
 
-2. **[Training a naive policy.](#42-training-a-naive-policy)** A policy was trained using PPO with a reward function dependent only on completion of the task (find the fruit). As expected, the resulting policy crushes the cat in a high proportion of episodes, demonstrating misaligned behaviour. 
+2. **[Training a naive policy.](#42-training-a-naive-policy)** A policy was trained using Proximal Policy Optimisation (PPO) with a reward function dependent only on completion of the task (find the fruit). As expected, the resulting policy crushes the cat in a high proportion of episodes, demonstrating misaligned behaviour. 
 
 3. **[LLM supervision.](#43-llm-supervision)** The sequences of images representing 10,000 episodes sampled from the naive policy were submitted to GPT-4o-mini, each prefaced by a prompt requesting simple binary feedback on whether the agent's actions align with human values. Importantly, no specification was made that the cat is of value. 
 
@@ -50,6 +51,7 @@ ILLUSTRATION OF TECHNIQUE?
 --->
 
 &nbsp;
+<span id="table-1"> </span>
 
 |  | Naive policy | LLM feedback - Round 1 | LLM feedback - Round 2 |
 | :-----: | :-----: | :-----: | :-----: |
@@ -57,16 +59,16 @@ ILLUSTRATION OF TECHNIQUE?
 | Fruit found (%) | 99.0 | 89.9 | 94.1 |
 | Mean episode length | 11.5 | 20.7 | 17.2 |
 
-***Table 1** - Summary of final results; percentages calculated from 10,000 samples of each policy. RL from LLM feedback on human values significantly reduces frequency of harm at a small cost in task performance.  LLM feedback was integrated in two successive rounds of PPO; [see below](#4-5-rl-from-llm-feedback) for details.*
+***Table 1** - Summary of final results; percentages calculated from 10,000 samples of each policy. RL from LLM feedback on human values significantly reduces frequency of harm at a small cost in task performance.  LLM feedback was integrated in two successive rounds of PPO; [see below](#45-rl-from-llm-feedback) for details.*
 
 &nbsp;
 
 ## **3.** Key Findings
 1. **In this limited example, RL from LLM feedback successfully improves alignment properties.** Training with LLM feedback significantly reduces the likelihood of harm to the cat, though it is not eliminated. The cat survives in 96.9% of 10,000 samples of the policy trained with LLM feedback, improved from 37.6% with the naive policy, with a small decline in completion of the task (99.0% to 94.1%).
 
-2. **GPT-4o-mini can make simple moral judgements based on a series of images.** In the vast majority (97.0%) of cases, GPT-4o-mini recognised the harmful interaction between the robot when it occurred in the image sequences and provided negative feedback as a result. It also provided positive feedback when this did not occur. 
+2. **GPT-4o-mini can make simple moral judgements based on a series of images.** In the vast majority (97.0%) of cases, GPT-4o-mini recognised the harmful interaction between the robot when it occurred in the image sequences and provided negative feedback as a result. It also provided positive feedback when this did not occur. See [Table 2](#table-2).
 
-3. **GPT-4o-mini sometimes makes mistakes in supervision that a human would not make.** In a minority of cases (3.0%), GPT-4o-mini fails to understand that the cat has been killed, even when this is clearly shown in the sequence of images provided, and therefore provides positive feedback on a clearly unacceptable outcome. 
+3. **GPT-4o-mini sometimes makes mistakes in supervision that a human would not make.** In a minority of cases (3.0%), GPT-4o-mini fails to understand that the cat has been killed, even when this is clearly shown in the sequence of images provided, and therefore provides positive feedback on a clearly unacceptable outcome; details in section [5.1.4](#514-problems-with-the-results-from-gpt-4o-mini).
 
 4. **Feedback from GPT-4o-mini is highly sensitive to small changes in prompt wording.** While very little in the prompt was changed prior to the final version [shown below](#43-llm-supervision), one version used the phrase 'violate human values' instead of 'align with human values' to emphasise detection of serious negative outcomes. This resulted in almost uniform negative feedback, which could not be used for training.
 
@@ -76,10 +78,10 @@ ILLUSTRATION OF TECHNIQUE?
 ## **4.** Methods and results
 
 ### **4.1** Task environment
-Homegrid, a representation of a domestic environment based on a 14×12 tile grid, was chosen as the object of study for three reasons. First, it is simple and suitable for RL research subject to time and funding constraints. Second, it provides a clear output format that can be fed to a multimodal LLM to facilitate supervision: in this case, a sequence of 448×384 RGB images from each step in a training episode (Figure 1). Finally, since it portrays a domestic environment, it is easy to modify so that it contains objects and events of obvious moral significance. I am very grateful to Jessy Lin and her co-authors at UC Berkeley for their work in creating the original environment [[1]](#lin). 
+Homegrid, a representation of a domestic environment based on a 14×12 tile grid shown, was chosen as the object of study for three reasons. First, it is simple and suitable for RL research subject to time and funding constraints. Second, it provides a clear output format that can be fed to a multimodal LLM to facilitate supervision: in this case, a sequence of 448×384 RGB images from each step in a training episode (see [Figure 1](#figure-1)). Finally, since it portrays a domestic environment, it is easy to modify so that it contains objects and events of obvious moral significance. I am very grateful to Jessy Lin and her co-authors at UC Berkeley for their work in creating the original environment [[1]](#lin). 
 
 #### Modifications
-An altered version of homegrid was produced to facilitate the experiment (Figure 1). Additional objects present in the original environment were removed for simplicity. 32×32 pixel representations of a robot, cat and blood stain were produced, and edits made so that the cat can be crushed if the robot moves over it (Figure 1, left.), in a clear violation of human values. 
+An altered version of homegrid was produced to facilitate the experiment. Additional objects present in the original environment were removed for simplicity. 32×32 pixel representations of a robot, cat and blood stain were produced, and edits made so that the cat can be crushed if the robot moves over it ([Figure 1, naive policy](#figure-1)), in a clear violation of human values. 
 
 At the beginning of each episode, the agent and fruit were placed randomly within a set of suitable positions, with a minimum of three tiles between them. The cat was then placed between the agent and fruit to raise the chances of interaction as the agent completes the task; specifically, a point was chosen uniformly at random along a straight line between the agent and fruit coordinates, and the cat placed at the closest grid position accessible to the agent, subject to being at least one tile from the agent and from the fruit.
 
@@ -101,7 +103,7 @@ where $t$ is the index of the time step and $r_{t}$ is the reward at that step. 
 
 The agent was given a complete view of the environment in a simplified format as a 12×14×4 tensor representing the grid, with one channel marking the position of the agent, one marking the fruit, and one marking the cat. The fourth channel gave a binary representation of the tiles that the agent could and could not access; this was provided as it was originally planned that there should be variation in this between episodes, although this was ultimately abandoned. 
 
-Training was carried out using the implementation of Proximal Policy Optimisation (PPO) provided in the Stable Baselines 3 library [[4]](#SB3), with the default hyperparameters and 10 hours of training on a laptop with an RTX 3060 GPU (1.3×10<sup>7</sup> steps, ~10<sup>6</sup> episodes). To increase the odds of the agent successfully grokking the relevant spatial relationships, a Convolutional Neural Network (CNN) was used as a feature extractor. 
+Training was carried out using the implementation of PPO provided in the Stable Baselines 3 library [[4]](#SB3), with the default hyperparameters and 10 hours of training on a laptop with an RTX 3060 GPU (1.3×10<sup>7</sup> steps, ~10<sup>6</sup> episodes). To increase the odds of the agent successfully grokking the relevant spatial relationships, a Convolutional Neural Network (CNN) was used as a feature extractor. 
 
 #### Results
 In 10,000 episodes sampled from the trained policy, the agent successfully found the fruit in the vast majority of cases, but as expected, the survival rate of the cat was low, at 37.6%. 
@@ -133,6 +135,8 @@ Using the OpenAI API's batch mode, feedback was obtained on the same 10,000 epis
 
 #### Results
 
+<span id="table-2"> </span>
+
 |  | Cat alive | Cat dead |
 | :-----: | :-----: | :-----: |
 | LLM says aligned | 3748 | 188 |
@@ -145,7 +149,7 @@ As hoped, the LLM appeared to understand what had happened in the sequence of im
 
 On the whole, GPT's comprehension seemed reliable enough to use for feedback, but occasionally interpretation of the image sequences was subject to both false positives and false negatives. Concerningly, in 3.0% of cat deaths, the LLM would fail to recognise the problem, often misinterpreting the blood stain as a spillage that the robot may have been "attempting to clean up" ([A.3](#a3-cat-does-not-survive---comprehension-failure)). 
 
-Interestingly, it would sometimes also become confused about the time-ordering of the images, stating for example that the robot "moves **towards** a spilled substance"; manually reviewing the image sequence, the robot moves *towards* a cat, and only *away* from the blood stain misinterpreted as a spillage. In a tiny minority of cases, GPT also gave negative feedback for nonsensical reasons, for example criticising the robot for 'dropping' objects that are not obviously present in the images ([A.4](#a4-cat-survives---comprehension-failure)). These problems are discussed further in the *Limitations* section below. 
+Interestingly, it would sometimes also become confused about the time-ordering of the images, stating for example that the robot "moves **towards** a spilled substance"; manually reviewing the image sequence, the robot moves *towards* a cat, and only *away* from the blood stain misinterpreted as a spillage. In a tiny minority of cases, GPT also gave negative feedback for nonsensical reasons, for example criticising the robot for 'dropping' objects that are not obviously present in the images ([A.4](#a4-cat-survives---comprehension-failure)). These problems are discussed further in the section on *Limitations* below ([5.1.4](#514-problems-with-the-results-from-gpt-4o-mini)). 
 
 
 ### 4.4 Reward model
@@ -182,13 +186,13 @@ This function has the following properties:
 2. In the case that the episode is truncated without task completion, but receives positive alignment feedback, a small positive reward $R_{trc}$ is given. This is introduced so that the agent is rewarded for continuing to display aligned behaviour in episodes where it fails to complete the task. 
 3. Besides this, the reward scheme is the same as for the naive policy, encouraging efficient completion of the task. 
 
-In a first attempt at training with the new reward function, $R_{trc}$ was set to 0.01, and $c$ to 0.9, reflecting a concern that excessive reward for reaching episode truncation vs. task completion might cause the agent to cease pursuing the task and simply run the clock down to truncation. Using the naive policy as a starting point to save time, PPO was run for a further 1.3×10<sup>7</sup> training steps and the resulting agent evaluated over 10,000 randomly initialised episodes as before. The results from this first round of training can be seen in Table 1 under 'LLM feedback - Round 1'; as hoped, cat survival drastically increases.  
+In a first attempt at training with the new reward function, $R_{trc}$ was set to 0.01, and $c$ to 0.9, reflecting a concern that excessive reward for reaching episode truncation vs. task completion might cause the agent to cease pursuing the task and simply run the clock down to truncation. Using the naive policy as a starting point to save time, PPO was run for a further 1.3×10<sup>7</sup> training steps and the resulting agent evaluated over 10,000 randomly initialised episodes as before. The results from this first round of training can be seen in [Table 1](#table-1) under 'LLM feedback - Round 1'; as hoped, cat survival drastically increases.  
 
-To improve the safety properties further, a second round of 1.3×10<sup>7</sup> steps was performed starting with the Round 1 policy. In this round, $R_{trc}$ was increased to 0.1 to increase the favourability of aligned behaviour;  $c$ was reset to 0.8 so that inefficient task completion was still more highly valued than non-task completion. The final 'Round 2' agent had substantially improved properties in both safety and performance, as can be seen in Table 1. 
+To improve the safety properties further, a second round of 1.3×10<sup>7</sup> steps was performed starting with the Round 1 policy. In this round, $R_{trc}$ was increased to 0.1 to increase the favourability of aligned behaviour;  $c$ was reset to 0.8 so that inefficient task completion was still more highly valued than non-task completion. The final 'Round 2' agent had substantially improved properties in both safety and performance, as can be seen in [Table 1](#table-1). 
 
 ![alt text](episode_lengths_LLM_feedback_policy.png)
 
-***Figure 3.** Distribution of episode lengths, final (Round 2) policy. Episodes are considerably longer than for the naive policy; this may be partially due to the longer routes needed to move safely around the cat. There is also a notable 'hesitation' behaviour that lengthens some episodes, as the agent appears to try to avoid going near the cat at all.*
+***Figure 3.** Distribution of episode lengths, final (Round 2) policy. Episodes are considerably longer than for the naive policy; this may be partially due to the longer routes needed to move safely around the cat. There is also a notable 'hesitation' behaviour that lengthens some episodes, as the agent appears to try to avoid going near the cat at all; see [Figure 1 ('With LLM Feedback', episode 6)](#figure-1).*
 
 
 ## **5.** Limitations and future work
@@ -234,7 +238,7 @@ Problems could arise from goal misgeneralisation [[6]](#goal-misgeneralisation),
 
 To provide a toy example based on the experiment here, what if the final agent was deployed in an environment which contained not only a cat, but also a dog? Since the agent has only learned to protect cats in the training environment, the dog might not fare so well.
 
-##### Possible extension: World-modelling
+#### Possible extension: World-modelling
 It is possible that an extension to the current technique might mitigate this problem. PPO is a model-free RL technique, meaning that it learns the policy directly from experience, but model-based techniques exist also. 
 
 With an explicit model of the environment available to it, able to predict the consequences of actions, it might be possible to apply LLM judgement on the resulting outcomes before the action is taken. In the toy example, while the agent has not seen a dog in training, if it had access to an environment model that included possible harm to the dog and could query an LLM in real time with the predicted trajectory, then these predictions could be used to ensure safety.
